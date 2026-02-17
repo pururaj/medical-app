@@ -1,0 +1,166 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Databases (one per service)
+  patient-db:
+    image: postgres:16-alpine
+    container_name: patient-db
+    environment:
+      POSTGRES_DB: patient_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - patient-db-data:/var/lib/postgresql/data
+    networks:
+      - medical-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  appointment-db:
+    image: postgres:16-alpine
+    container_name: appointment-db
+    environment:
+      POSTGRES_DB: appointment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - appointment-db-data:/var/lib/postgresql/data
+    networks:
+      - medical-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  doctor-db:
+    image: postgres:16-alpine
+    container_name: doctor-db
+    environment:
+      POSTGRES_DB: doctor_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - doctor-db-data:/var/lib/postgresql/data
+    networks:
+      - medical-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  medical-records-db:
+    image: postgres:16-alpine
+    container_name: medical-records-db
+    environment:
+      POSTGRES_DB: medical_records_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - medical-records-db-data:/var/lib/postgresql/data
+    networks:
+      - medical-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  billing-db:
+    image: postgres:16-alpine
+    container_name: billing-db
+    environment:
+      POSTGRES_DB: billing_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - billing-db-data:/var/lib/postgresql/data
+    networks:
+      - medical-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ for async messaging
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - medical-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - medical-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@medicalapp.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - medical-network
+    depends_on:
+      - patient-db
+      - appointment-db
+      - doctor-db
+
+volumes:
+  patient-db-data:
+  appointment-db-data:
+  doctor-db-data:
+  medical-records-db-data:
+  billing-db-data:
+  rabbitmq-data:
+  redis-data:
+  pgadmin-data:
+
+networks:
+  medical-network:
+    driver: bridge

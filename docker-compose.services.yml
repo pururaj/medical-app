@@ -1,0 +1,128 @@
+version: '3.8'
+
+# Docker Compose file for running Spring Boot microservices
+# Use this after building the services with Maven
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - medical-network
+    depends_on:
+      - patient-service
+      - appointment-service
+      - doctor-service
+    restart: unless-stopped
+
+  # Patient Service
+  patient-service:
+    build:
+      context: ./backend/patient-service
+      dockerfile: Dockerfile
+    container_name: patient-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-db:5432/patient_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - medical-network
+    depends_on:
+      patient-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Appointment Service
+  appointment-service:
+    build:
+      context: ./backend/appointment-service
+      dockerfile: Dockerfile
+    container_name: appointment-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://appointment-db:5432/appointment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - medical-network
+    depends_on:
+      appointment-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Doctor Service
+  doctor-service:
+    build:
+      context: ./backend/doctor-service
+      dockerfile: Dockerfile
+    container_name: doctor-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://doctor-db:5432/doctor_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - medical-network
+    depends_on:
+      doctor-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Medical Records Service
+  medical-records-service:
+    build:
+      context: ./backend/medical-records-service
+      dockerfile: Dockerfile
+    container_name: medical-records-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://medical-records-db:5432/medical_records_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - medical-network
+    depends_on:
+      medical-records-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Billing Service
+  billing-service:
+    build:
+      context: ./backend/billing-service
+      dockerfile: Dockerfile
+    container_name: billing-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://billing-db:5432/billing_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - medical-network
+    depends_on:
+      billing-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+# Import infrastructure services from main docker-compose.yml
+networks:
+  medical-network:
+    external: true

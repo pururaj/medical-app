@@ -1,0 +1,27 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Build
+target/
+dist/
+build/
+node_modules/
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# OS
+Thumbs.db
