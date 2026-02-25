@@ -1,0 +1,138 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--ion-color-medium);
+
+  ion-spinner { margin-bottom: 16px; }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+
+  ion-icon {
+    font-size: 72px;
+    color: var(--ion-color-light-shade);
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin: 0 0 8px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin: 0 0 24px;
+  }
+}
+
+.appointments-list {
+  padding: 12px 12px 80px;
+}
+
+.appointment-card {
+  border-radius: 14px;
+  margin: 0 0 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+
+  ion-card-content { padding: 16px; }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .doctor-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .doctor-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--ion-color-primary-tint);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon {
+        font-size: 22px;
+        color: var(--ion-color-primary);
+      }
+    }
+
+    h3.doctor-name {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 2px;
+      color: var(--ion-color-dark);
+    }
+
+    p.specialization {
+      font-size: 13px;
+      color: var(--ion-color-medium);
+      margin: 0;
+    }
+  }
+
+  .status-chip {
+    --height: 26px;
+    font-size: 12px;
+    flex-shrink: 0;
+
+    ion-icon { font-size: 14px; }
+  }
+
+  .appointment-details {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--ion-color-dark-tint);
+
+      ion-icon { font-size: 15px; color: var(--ion-color-primary); }
+
+      &.token {
+        margin-left: auto;
+        .token-label {
+          font-size: 11px;
+          color: var(--ion-color-medium);
+          margin-right: 2px;
+        }
+        .token-number {
+          font-weight: 700;
+          color: var(--ion-color-primary);
+        }
+      }
+    }
+  }
+
+  .reason {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    margin: 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--ion-color-light);
+    font-style: italic;
+  }
+}

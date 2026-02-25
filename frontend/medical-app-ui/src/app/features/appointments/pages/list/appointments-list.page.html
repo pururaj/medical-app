@@ -1,0 +1,102 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>My Appointments</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="bookAppointment()">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar>
+    <ion-segment [value]="selectedFilter" (ionChange)="onFilterChange($event)">
+      <ion-segment-button value="upcoming">Upcoming</ion-segment-button>
+      <ion-segment-button value="completed">Past</ion-segment-button>
+      <ion-segment-button value="all">All</ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="loadAppointments($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (loading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading appointments...</p>
+    </div>
+  }
+
+  @if (!loading && filteredAppointments.length === 0) {
+    <div class="empty-state">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <h3>No Appointments Found</h3>
+      <p>
+        @if (selectedFilter === 'upcoming') {
+          You have no upcoming appointments.
+        } @else {
+          No appointments in this category.
+        }
+      </p>
+      <ion-button (click)="bookAppointment()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Book Now
+      </ion-button>
+    </div>
+  }
+
+  @if (!loading && filteredAppointments.length > 0) {
+    <div class="appointments-list">
+      @for (appt of filteredAppointments; track appt.id) {
+        <ion-card class="appointment-card">
+          <ion-card-content>
+            <div class="card-header">
+              <div class="doctor-info">
+                <div class="doctor-avatar">
+                  <ion-icon name="person-outline"></ion-icon>
+                </div>
+                <div>
+                  <h3 class="doctor-name">{{ appt.doctorName }}</h3>
+                  <p class="specialization">{{ appt.specialization }}</p>
+                </div>
+              </div>
+              <ion-chip [color]="getStatusConfig(appt.status ?? '').color" class="status-chip">
+                <ion-icon [name]="getStatusConfig(appt.status ?? '').icon"></ion-icon>
+                <ion-label>{{ getStatusConfig(appt.status ?? '').label }}</ion-label>
+              </ion-chip>
+            </div>
+
+            <div class="appointment-details">
+              <div class="detail-item">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>{{ formatDate(appt.appointmentDate) }}</span>
+              </div>
+              <div class="detail-item">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>{{ formatTime(appt.appointmentTime) }}</span>
+              </div>
+              @if (appt.tokenNumber) {
+                <div class="detail-item token">
+                  <span class="token-label">Token</span>
+                  <span class="token-number">#{{ appt.tokenNumber }}</span>
+                </div>
+              }
+            </div>
+
+            @if (appt.reasonForVisit) {
+              <p class="reason">{{ appt.reasonForVisit }}</p>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="bookAppointment()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

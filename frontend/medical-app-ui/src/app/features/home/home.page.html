@@ -1,0 +1,38 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>
+      <div class="header-content">
+        <span>MedApp</span>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="hero-banner">
+    <div class="hero-text">
+      <h1>Welcome Back!</h1>
+      <p>{{ todayDate }}</p>
+    </div>
+    <ion-icon name="medkit-outline" class="hero-icon"></ion-icon>
+  </div>
+
+  <div class="section-title">Quick Actions</div>
+  <ion-grid class="quick-actions-grid">
+    <ion-row>
+      @for (action of quickActions; track action.route) {
+        <ion-col size="6">
+          <ion-card button (click)="navigate(action.route)" class="action-card">
+            <ion-card-content>
+              <div class="action-icon" [style.background-color]="action.color + '22'">
+                <ion-icon [name]="action.icon" [style.color]="action.color"></ion-icon>
+              </div>
+              <ion-text class="action-label">{{ action.label }}</ion-text>
+              <p class="action-desc">{{ action.description }}</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      }
+    </ion-row>
+  </ion-grid>
+</ion-content>

@@ -1,0 +1,362 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Book Appointment</ion-title>
+  </ion-toolbar>
+
+  <!-- Step progress bar -->
+  @if (!bookingDone) {
+    <ion-toolbar class="progress-toolbar">
+      <div class="step-bar">
+        @for (step of ['doctor','date','time','details','confirm']; track step; let i = $index) {
+          <div class="step-item" [class.active]="currentStep === step" [class.done]="stepIndex > i">
+            <div class="step-dot">
+              @if (stepIndex > i) {
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+              } @else {
+                {{ i + 1 }}
+              }
+            </div>
+            <span class="step-name">{{ stepLabel($any(step)) }}</span>
+          </div>
+          @if (i < 4) {
+            <div class="step-line" [class.done]="stepIndex > i"></div>
+          }
+        }
+      </div>
+      <ion-progress-bar [value]="progress" color="primary"></ion-progress-bar>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <!-- ===== SUCCESS ===== -->
+  @if (bookingDone) {
+    <div class="success-screen">
+      <div class="success-circle">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+      </div>
+      <h2>Appointment Confirmed!</h2>
+      <p>Your appointment has been successfully booked.</p>
+
+      <ion-card class="confirm-summary-card">
+        <ion-card-content>
+          <div class="summary-row">
+            <span class="lbl">Doctor</span>
+            <span class="val">{{ selectedDoctor?.name }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="lbl">Date</span>
+            <span class="val">{{ formatDate(selectedDate) }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="lbl">Time</span>
+            <span class="val">{{ formatTime(selectedTime) }}</span>
+          </div>
+          @if (bookedTokenNumber) {
+            <div class="summary-row token-row">
+              <span class="lbl">Queue Token</span>
+              <span class="token-badge">#{{ bookedTokenNumber }}</span>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+
+      <div class="success-actions">
+        <ion-button expand="block" (click)="goToAppointments()">View My Appointments</ion-button>
+        <ion-button expand="block" fill="outline" (click)="bookAnother()">Book Another</ion-button>
+      </div>
+    </div>
+  }
+
+  <!-- ===== STEP 1: SELECT DOCTOR ===== -->
+  @if (!bookingDone && currentStep === 'doctor') {
+    <div class="step-content">
+      <div class="step-heading">
+        <h2>Choose a Doctor</h2>
+        <p>Select the specialist you'd like to visit</p>
+      </div>
+
+      @for (doc of filteredDoctors; track doc.id) {
+        <ion-card
+          button
+          [class.unavailable]="!doc.available"
+          (click)="pickDoctor(doc)"
+          class="doctor-card"
+          [class.selected]="selectedDoctor?.id === doc.id"
+        >
+          <ion-card-content>
+            <div class="doc-row">
+              <div class="doc-avatar">
+                <ion-icon name="person-outline"></ion-icon>
+              </div>
+              <div class="doc-info">
+                <h3>{{ doc.name }}</h3>
+                <p class="spec">{{ doc.specialization }}</p>
+                <div class="doc-meta">
+                  <ion-chip class="meta-chip" color="warning">
+                    <ion-icon name="star-outline"></ion-icon>
+                    <ion-label>{{ doc.rating }}</ion-label>
+                  </ion-chip>
+                  <ion-chip class="meta-chip" color="medium">
+                    <ion-label>{{ doc.experience }}</ion-label>
+                  </ion-chip>
+                  <ion-chip class="meta-chip fee-chip" color="success">
+                    <ion-icon name="cash-outline"></ion-icon>
+                    <ion-label>₹{{ doc.consultationFee }}</ion-label>
+                  </ion-chip>
+                </div>
+              </div>
+              @if (!doc.available) {
+                <ion-badge color="danger" class="unavail-badge">Unavailable</ion-badge>
+              } @else {
+                <ion-icon name="arrow-forward-outline" class="arrow-icon"></ion-icon>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- ===== STEP 2: SELECT DATE ===== -->
+  @if (!bookingDone && currentStep === 'date') {
+    <div class="step-content">
+      <div class="step-heading">
+        <h2>Pick a Date</h2>
+        <p>Appointment with <strong>{{ selectedDoctor?.name }}</strong></p>
+      </div>
+
+      <ion-card class="calendar-card">
+        <ion-card-content>
+          <ion-datetime
+            presentation="date"
+            [min]="minDate"
+            [max]="maxDate"
+            [value]="selectedIsoDate"
+            (ionChange)="onDateChange($event)"
+            size="cover"
+            color="primary"
+          ></ion-datetime>
+        </ion-card-content>
+      </ion-card>
+
+      @if (selectedDate) {
+        <div class="bottom-action">
+          <ion-button expand="block" (click)="confirmDate()">
+            Continue
+            <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+          </ion-button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ===== STEP 3: SELECT TIME ===== -->
+  @if (!bookingDone && currentStep === 'time') {
+    <div class="step-content">
+      <div class="step-heading">
+        <h2>Select Time Slot</h2>
+        <p>{{ formatDate(selectedDate) }}</p>
+      </div>
+
+      @if (loadingSlots) {
+        <div class="slots-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Fetching available slots…</p>
+        </div>
+      }
+
+      @if (!loadingSlots && timeSlots.length === 0) {
+        <div class="no-slots">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>No slots available on this date.</p>
+          <ion-button fill="outline" (click)="currentStep = 'date'">
+            Choose Another Date
+          </ion-button>
+        </div>
+      }
+
+      @if (!loadingSlots && timeSlots.length > 0) {
+        <div class="slots-legend">
+          <span class="legend-item available">
+            <span class="dot"></span> Available
+          </span>
+          <span class="legend-item booked">
+            <span class="dot"></span> Booked
+          </span>
+          <span class="legend-item selected">
+            <span class="dot"></span> Selected
+          </span>
+        </div>
+
+        <ion-grid class="slots-grid">
+          <ion-row>
+            @for (slot of timeSlots; track slot.startTime) {
+              <ion-col size="4" size-sm="3">
+                <button
+                  class="slot-btn"
+                  [class.slot-available]="slot.available"
+                  [class.slot-booked]="!slot.available"
+                  [class.slot-selected]="selectedTime === slot.startTime.substring(0,5)"
+                  [disabled]="!slot.available"
+                  (click)="pickTimeSlot(slot)"
+                >
+                  {{ formatTime(slot.startTime.substring(0,5)) }}
+                </button>
+              </ion-col>
+            }
+          </ion-row>
+        </ion-grid>
+      }
+    </div>
+  }
+
+  <!-- ===== STEP 4: APPOINTMENT DETAILS ===== -->
+  @if (!bookingDone && currentStep === 'details') {
+    <div class="step-content">
+      <div class="step-heading">
+        <h2>Visit Details</h2>
+        <p>Tell us why you're visiting</p>
+      </div>
+
+      <ion-card>
+        <ion-card-content>
+          <!-- Appointment Type -->
+          <ion-item lines="full" class="form-item">
+            <ion-label position="stacked">Appointment Type</ion-label>
+            <ion-select
+              [(ngModel)]="appointmentType"
+              interface="action-sheet"
+              placeholder="Select type"
+            >
+              <ion-select-option value="NEW_VISIT">New Visit</ion-select-option>
+              <ion-select-option value="FOLLOW_UP">Follow-up</ion-select-option>
+              <ion-select-option value="EMERGENCY">Emergency</ion-select-option>
+              <ion-select-option value="TELEMEDICINE">Telemedicine</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Reason -->
+          <ion-item lines="full" class="form-item">
+            <ion-label position="stacked">Reason for Visit <ion-text color="danger">*</ion-text></ion-label>
+            <ion-textarea
+              [(ngModel)]="reasonForVisit"
+              placeholder="e.g., Regular checkup, chest pain, follow-up after surgery…"
+              [rows]="3"
+              [maxlength]="500"
+              autoGrow
+            ></ion-textarea>
+          </ion-item>
+
+          <!-- Symptoms -->
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Current Symptoms <ion-note>(optional)</ion-note></ion-label>
+            <ion-textarea
+              [(ngModel)]="symptoms"
+              placeholder="Describe any symptoms you are experiencing…"
+              [rows]="4"
+              [maxlength]="1000"
+              autoGrow
+            ></ion-textarea>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="bottom-action">
+        <ion-button expand="block" (click)="proceedToConfirm()">
+          Review Booking
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  }
+
+  <!-- ===== STEP 5: CONFIRM ===== -->
+  @if (!bookingDone && currentStep === 'confirm') {
+    <div class="step-content">
+      <div class="step-heading">
+        <h2>Review & Confirm</h2>
+        <p>Please verify your appointment details</p>
+      </div>
+
+      <ion-card class="confirm-card">
+        <ion-card-content>
+          <div class="summary-row">
+            <ion-icon name="person-outline"></ion-icon>
+            <div class="sr-text">
+              <span class="lbl">Doctor</span>
+              <span class="val">{{ selectedDoctor?.name }}</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="medkit-outline"></ion-icon>
+            <div class="sr-text">
+              <span class="lbl">Specialization</span>
+              <span class="val">{{ selectedDoctor?.specialization }}</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <div class="sr-text">
+              <span class="lbl">Date</span>
+              <span class="val">{{ formatDate(selectedDate) }}</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="time-outline"></ion-icon>
+            <div class="sr-text">
+              <span class="lbl">Time</span>
+              <span class="val">{{ formatTime(selectedTime) }}</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="medkit-outline"></ion-icon>
+            <div class="sr-text">
+              <span class="lbl">Type</span>
+              <span class="val">{{ typeLabel(appointmentType) }}</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="cash-outline"></ion-icon>
+            <div class="sr-text">
+              <span class="lbl">Consultation Fee</span>
+              <span class="val fee">₹{{ selectedDoctor?.consultationFee }}</span>
+            </div>
+          </div>
+          <div class="summary-row reason-row">
+            <ion-icon name="medkit-outline"></ion-icon>
+            <div class="sr-text">
+              <span class="lbl">Reason</span>
+              <span class="val">{{ reasonForVisit }}</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="bottom-action confirm-actions">
+        <ion-button
+          expand="block"
+          (click)="confirmBooking()"
+          [disabled]="isBooking"
+        >
+          @if (isBooking) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+            Booking…
+          } @else {
+            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+            Confirm Appointment
+          }
+        </ion-button>
+        <ion-button expand="block" fill="outline" [disabled]="isBooking" (click)="currentStep = 'details'">
+          Edit Details
+        </ion-button>
+      </div>
+    </div>
+  }
+</ion-content>

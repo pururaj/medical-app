@@ -35,6 +35,7 @@
     <modules>
         <module>shared-library</module>
         <module>patient-service</module>
+        <module>appointment-service</module>
         <module>api-gateway</module>
     </modules>
 
