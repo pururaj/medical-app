@@ -1,0 +1,156 @@
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.error-state {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 20px;
+  background: linear-gradient(180deg, var(--ion-color-primary) 0%, var(--ion-color-light) 100%);
+
+  .doctor-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: white;
+    color: var(--ion-color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    border: 3px solid rgba(255,255,255,0.8);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .doctor-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 10px;
+    text-align: center;
+  }
+
+  ion-chip {
+    margin: 2px;
+  }
+
+  .availability-badge {
+    margin-top: 10px;
+  }
+}
+
+.stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: white;
+  padding: 16px;
+  margin: 0;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+
+  .stat-item {
+    flex: 1;
+    text-align: center;
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ion-color-primary);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--ion-color-medium);
+      margin-top: 2px;
+    }
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--ion-color-light-shade);
+  }
+}
+
+.info-card {
+  margin: 12px 12px 0;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  margin: 0 0 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bio-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ion-color-dark-tint);
+  margin: 0;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--ion-color-light);
+
+  &:last-child { border-bottom: none; }
+
+  ion-icon {
+    width: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .info-content {
+    flex: 1;
+
+    .info-label {
+      font-size: 11px;
+      color: var(--ion-color-medium);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: var(--ion-color-dark);
+    }
+  }
+}
+
+.book-fab {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  background: white;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.1);
+
+  ion-button {
+    --border-radius: 12px;
+    height: 52px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}

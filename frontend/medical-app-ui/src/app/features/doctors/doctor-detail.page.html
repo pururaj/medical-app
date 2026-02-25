@@ -1,0 +1,170 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/doctors"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Doctor Profile</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (loading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  }
+
+  @if (error && !loading) {
+    <div class="error-state">
+      <ion-text color="danger">
+        <p>{{ error }}</p>
+      </ion-text>
+    </div>
+  }
+
+  @if (doctor && !loading) {
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <div class="doctor-avatar">
+        {{ doctor.firstName[0] }}{{ doctor.lastName[0] }}
+      </div>
+      <h1 class="doctor-name">{{ getDoctorName() }}</h1>
+      <ion-chip color="primary">
+        <ion-label>{{ doctor.specialization }}</ion-label>
+      </ion-chip>
+      @if (doctor.subSpecialization) {
+        <ion-chip color="secondary" outline>
+          <ion-label>{{ doctor.subSpecialization }}</ion-label>
+        </ion-chip>
+      }
+      <div class="availability-badge">
+        @if (doctor.available) {
+          <ion-badge color="success">Available for Appointments</ion-badge>
+        } @else {
+          <ion-badge color="medium">Currently Unavailable</ion-badge>
+        }
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-value">{{ doctor.experienceYears }}</div>
+        <div class="stat-label">Years Exp.</div>
+      </div>
+      <div class="stat-divider"></div>
+      @if (doctor.averageRating && doctor.averageRating > 0) {
+        <div class="stat-item">
+          <div class="stat-value">{{ doctor.averageRating | number:'1.1-1' }}</div>
+          <div class="stat-label">Rating</div>
+        </div>
+        <div class="stat-divider"></div>
+      }
+      <div class="stat-item">
+        <div class="stat-value">{{ doctor.consultationDurationMinutes }}</div>
+        <div class="stat-label">Min/Visit</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value">₹{{ doctor.consultationFee | number:'1.0-0' }}</div>
+        <div class="stat-label">Fee</div>
+      </div>
+    </div>
+
+    <!-- About -->
+    @if (doctor.bio) {
+      <ion-card class="info-card">
+        <ion-card-content>
+          <h3 class="section-title">About</h3>
+          <p class="bio-text">{{ doctor.bio }}</p>
+        </ion-card-content>
+      </ion-card>
+    }
+
+    <!-- Credentials -->
+    <ion-card class="info-card">
+      <ion-card-content>
+        <h3 class="section-title">Credentials</h3>
+
+        <div class="info-row">
+          <ion-icon name="school-outline" color="primary"></ion-icon>
+          <div class="info-content">
+            <div class="info-label">Qualification</div>
+            <div class="info-value">{{ doctor.qualification }}</div>
+          </div>
+        </div>
+
+        @if (doctor.licenseNumber) {
+          <div class="info-row">
+            <ion-icon name="card-outline" color="primary"></ion-icon>
+            <div class="info-content">
+              <div class="info-label">License Number</div>
+              <div class="info-value">{{ doctor.licenseNumber }}</div>
+            </div>
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Practice Info -->
+    <ion-card class="info-card">
+      <ion-card-content>
+        <h3 class="section-title">Practice Information</h3>
+
+        @if (doctor.hospitalName) {
+          <div class="info-row">
+            <ion-icon name="medkit-outline" color="primary"></ion-icon>
+            <div class="info-content">
+              <div class="info-label">Hospital / Clinic</div>
+              <div class="info-value">{{ doctor.hospitalName }}</div>
+            </div>
+          </div>
+        }
+
+        @if (doctor.department) {
+          <div class="info-row">
+            <ion-icon name="person-outline" color="primary"></ion-icon>
+            <div class="info-content">
+              <div class="info-label">Department</div>
+              <div class="info-value">{{ doctor.department }}</div>
+            </div>
+          </div>
+        }
+
+        @if (doctor.city) {
+          <div class="info-row">
+            <ion-icon name="location-outline" color="primary"></ion-icon>
+            <div class="info-content">
+              <div class="info-label">Location</div>
+              <div class="info-value">{{ doctor.city }}{{ doctor.state ? ', ' + doctor.state : '' }}</div>
+            </div>
+          </div>
+        }
+
+        <div class="info-row">
+          <ion-icon name="time-outline" color="primary"></ion-icon>
+          <div class="info-content">
+            <div class="info-label">Consultation Duration</div>
+            <div class="info-value">{{ doctor.consultationDurationMinutes }} minutes per appointment</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- Spacer for FAB -->
+  <div style="height: 80px;"></div>
+</ion-content>
+
+@if (doctor && !loading) {
+  <div class="book-fab">
+    <ion-button
+      expand="block"
+      size="large"
+      [disabled]="!doctor.available"
+      (click)="bookAppointment()">
+      <ion-icon name="calendar-outline" slot="start"></ion-icon>
+      {{ doctor.available ? 'Book Appointment' : 'Currently Unavailable' }}
+    </ion-button>
+  </div>
+}

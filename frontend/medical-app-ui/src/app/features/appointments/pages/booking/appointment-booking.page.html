@@ -48,7 +48,7 @@
         <ion-card-content>
           <div class="summary-row">
             <span class="lbl">Doctor</span>
-            <span class="val">{{ selectedDoctor?.name }}</span>
+            <span class="val">{{ selectedDoctor ? getDoctorName(selectedDoctor) : '' }}</span>
           </div>
           <div class="summary-row">
             <span class="lbl">Date</span>
@@ -82,6 +82,20 @@
         <p>Select the specialist you'd like to visit</p>
       </div>
 
+      <ion-searchbar
+        [(ngModel)]="doctorSearch"
+        placeholder="Search by name or specialization"
+        debounce="200"
+        animated>
+      </ion-searchbar>
+
+      @if (loadingDoctors) {
+        <div class="slots-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Loading doctors…</p>
+        </div>
+      }
+
       @for (doc of filteredDoctors; track doc.id) {
         <ion-card
           button
@@ -93,18 +107,20 @@
           <ion-card-content>
             <div class="doc-row">
               <div class="doc-avatar">
-                <ion-icon name="person-outline"></ion-icon>
+                {{ doc.firstName[0] }}{{ doc.lastName[0] }}
               </div>
               <div class="doc-info">
-                <h3>{{ doc.name }}</h3>
+                <h3>{{ getDoctorName(doc) }}</h3>
                 <p class="spec">{{ doc.specialization }}</p>
                 <div class="doc-meta">
-                  <ion-chip class="meta-chip" color="warning">
-                    <ion-icon name="star-outline"></ion-icon>
-                    <ion-label>{{ doc.rating }}</ion-label>
-                  </ion-chip>
+                  @if (doc.averageRating && doc.averageRating > 0) {
+                    <ion-chip class="meta-chip" color="warning">
+                      <ion-icon name="star-outline"></ion-icon>
+                      <ion-label>{{ doc.averageRating | number:'1.1-1' }}</ion-label>
+                    </ion-chip>
+                  }
                   <ion-chip class="meta-chip" color="medium">
-                    <ion-label>{{ doc.experience }}</ion-label>
+                    <ion-label>{{ doc.experienceYears }} yrs</ion-label>
                   </ion-chip>
                   <ion-chip class="meta-chip fee-chip" color="success">
                     <ion-icon name="cash-outline"></ion-icon>
@@ -129,7 +145,7 @@
     <div class="step-content">
       <div class="step-heading">
         <h2>Pick a Date</h2>
-        <p>Appointment with <strong>{{ selectedDoctor?.name }}</strong></p>
+        <p>Appointment with <strong>{{ selectedDoctor ? getDoctorName(selectedDoctor) : '' }}</strong></p>
       </div>
 
       <ion-card class="calendar-card">
@@ -291,7 +307,7 @@
             <ion-icon name="person-outline"></ion-icon>
             <div class="sr-text">
               <span class="lbl">Doctor</span>
-              <span class="val">{{ selectedDoctor?.name }}</span>
+              <span class="val">{{ selectedDoctor ? getDoctorName(selectedDoctor) : '' }}</span>
             </div>
           </div>
           <div class="summary-row">

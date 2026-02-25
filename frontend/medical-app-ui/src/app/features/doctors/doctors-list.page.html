@@ -1,0 +1,139 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Find a Doctor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadDoctors($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Search + Filter Bar -->
+  <div class="filter-section">
+    <ion-searchbar
+      [(ngModel)]="searchQuery"
+      placeholder="Search by name or specialization"
+      debounce="300"
+      animated>
+    </ion-searchbar>
+
+    <div class="filter-row">
+      <ion-select
+        [(ngModel)]="selectedSpecialization"
+        (ionChange)="onFilterChange()"
+        placeholder="All Specializations"
+        interface="action-sheet"
+        class="spec-select">
+        <ion-select-option value="">All Specializations</ion-select-option>
+        @for (spec of specializations; track spec) {
+          <ion-select-option [value]="spec">{{ spec }}</ion-select-option>
+        }
+      </ion-select>
+
+      <ion-button
+        [fill]="showAvailableOnly ? 'solid' : 'outline'"
+        size="small"
+        color="success"
+        (click)="showAvailableOnly = !showAvailableOnly; onFilterChange()">
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Available
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Finding doctors...</p>
+    </div>
+  }
+
+  <!-- Doctor Cards -->
+  @if (!loading) {
+    <div class="doctors-container">
+      @if (filteredDoctors.length === 0) {
+        <div class="empty-state">
+          <ion-icon name="medkit-outline" class="empty-icon"></ion-icon>
+          <h3>No doctors found</h3>
+          <p>Try adjusting your search or filter criteria.</p>
+        </div>
+      }
+
+      @for (doctor of filteredDoctors; track doctor.id) {
+        <ion-card class="doctor-card" [class.unavailable]="!doctor.available">
+          <ion-card-content>
+            <!-- Header row -->
+            <div class="doctor-header">
+              <div class="doctor-avatar">
+                {{ doctor.firstName[0] }}{{ doctor.lastName[0] }}
+              </div>
+              <div class="doctor-info">
+                <h2 class="doctor-name">{{ getDoctorName(doctor) }}</h2>
+                <ion-chip color="primary" class="spec-chip">
+                  <ion-label>{{ doctor.specialization }}</ion-label>
+                </ion-chip>
+                @if (!doctor.available) {
+                  <ion-badge color="medium" class="unavail-badge">Unavailable</ion-badge>
+                }
+              </div>
+            </div>
+
+            <!-- Details -->
+            <div class="doctor-details">
+              <div class="detail-item">
+                <ion-icon name="medkit-outline" color="primary"></ion-icon>
+                <span>{{ doctor.qualification }}</span>
+              </div>
+
+              <div class="detail-item">
+                <ion-icon name="time-outline" color="primary"></ion-icon>
+                <span>{{ doctor.experienceYears }} years experience</span>
+              </div>
+
+              @if (doctor.hospitalName) {
+                <div class="detail-item">
+                  <ion-icon name="location-outline" color="primary"></ion-icon>
+                  <span>{{ doctor.hospitalName }}{{ doctor.city ? ', ' + doctor.city : '' }}</span>
+                </div>
+              }
+
+              <div class="detail-item">
+                <ion-icon name="cash-outline" color="success"></ion-icon>
+                <span class="fee">₹{{ doctor.consultationFee | number:'1.0-0' }} · {{ doctor.consultationDurationMinutes }} min</span>
+              </div>
+
+              @if (doctor.averageRating && doctor.averageRating > 0) {
+                <div class="detail-item">
+                  <ion-icon name="star-outline" color="warning"></ion-icon>
+                  <span>{{ doctor.averageRating | number:'1.1-1' }} ({{ doctor.totalRatings }} ratings)</span>
+                </div>
+              }
+            </div>
+
+            <!-- Bio -->
+            @if (doctor.bio) {
+              <p class="doctor-bio">{{ doctor.bio }}</p>
+            }
+
+            <!-- Actions -->
+            <div class="doctor-actions">
+              <ion-button fill="outline" size="small" (click)="viewDoctor(doctor)">
+                View Profile
+              </ion-button>
+              <ion-button
+                size="small"
+                color="primary"
+                [disabled]="!doctor.available"
+                (click)="bookAppointment(doctor)">
+                <ion-icon name="calendar-outline" slot="start"></ion-icon>
+                Book Appointment
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+</ion-content>
