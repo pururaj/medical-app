@@ -1,0 +1,90 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Patients</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="addPatient()">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadPatients($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-searchbar
+    placeholder="Search by name or email"
+    debounce="0"
+    (ionInput)="onSearch($event)"
+    animated>
+  </ion-searchbar>
+
+  @if (loading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Loading patients…</p>
+    </div>
+  }
+
+  @if (!loading) {
+    <div class="list-container">
+      @if (patients.length === 0) {
+        <div class="empty-state">
+          <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+          <h3>No patients found</h3>
+          <p>Register the first patient using the + button above.</p>
+          <ion-button (click)="addPatient()">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Register Patient
+          </ion-button>
+        </div>
+      }
+
+      @for (patient of patients; track patient.id) {
+        <ion-card class="patient-card" (click)="viewPatient(patient)">
+          <ion-card-content>
+            <div class="patient-row">
+              <div class="patient-avatar" [class]="'gender-' + patient.gender?.toLowerCase()">
+                {{ getInitials(patient) }}
+              </div>
+              <div class="patient-info">
+                <h3 class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</h3>
+                <div class="patient-meta">
+                  <span class="meta-item">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    {{ getAge(patient.dateOfBirth) }} yrs
+                  </span>
+                  <span class="meta-sep">·</span>
+                  <span class="meta-item gender-text">{{ patient.gender }}</span>
+                  @if (patient.bloodType) {
+                    <span class="meta-sep">·</span>
+                    <ion-chip class="blood-chip" color="danger">{{ patient.bloodType }}</ion-chip>
+                  }
+                </div>
+                <div class="contact-row">
+                  <ion-icon name="call-outline"></ion-icon>
+                  <span>{{ patient.phoneNumber }}</span>
+                </div>
+                <div class="contact-row">
+                  <ion-icon name="mail-outline"></ion-icon>
+                  <span class="email-text">{{ patient.email }}</span>
+                </div>
+              </div>
+              @if (!patient.active) {
+                <ion-badge color="medium" class="inactive-badge">Inactive</ion-badge>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="addPatient()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

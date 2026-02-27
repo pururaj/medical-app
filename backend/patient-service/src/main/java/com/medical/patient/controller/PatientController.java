@@ -1,5 +1,7 @@
 package com.medical.patient.controller;
 
+import com.medical.patient.dto.AddFamilyMemberRequest;
+import com.medical.patient.dto.FamilyMemberDto;
 import com.medical.patient.dto.PatientDto;
 import com.medical.patient.service.PatientService;
 import com.medical.shared.dto.ApiResponse;
@@ -93,5 +95,33 @@ public class PatientController {
     public ResponseEntity<ApiResponse<Void>> hardDeletePatient(@PathVariable Long id) {
         patientService.hardDeletePatient(id);
         return ResponseEntity.ok(ApiResponse.success("Patient deleted permanently", null));
+    }
+
+    // ---- Family Member Endpoints -----------------------------------------
+
+    @GetMapping("/{id}/family-members")
+    @Operation(summary = "Get all family members of a patient")
+    public ResponseEntity<ApiResponse<java.util.List<FamilyMemberDto>>> getFamilyMembers(@PathVariable Long id) {
+        java.util.List<FamilyMemberDto> members = patientService.getFamilyMembers(id);
+        return ResponseEntity.ok(ApiResponse.success(members));
+    }
+
+    @PostMapping("/{id}/family-members")
+    @Operation(summary = "Add a family member (new or existing patient)")
+    public ResponseEntity<ApiResponse<FamilyMemberDto>> addFamilyMember(
+            @PathVariable Long id,
+            @Valid @RequestBody AddFamilyMemberRequest request) {
+        FamilyMemberDto added = patientService.addFamilyMember(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Family member added successfully", added));
+    }
+
+    @DeleteMapping("/{id}/family-members/{memberId}")
+    @Operation(summary = "Remove a family member link")
+    public ResponseEntity<ApiResponse<Void>> removeFamilyMember(
+            @PathVariable Long id,
+            @PathVariable Long memberId) {
+        patientService.removeFamilyMember(id, memberId);
+        return ResponseEntity.ok(ApiResponse.success("Family member removed successfully", null));
     }
 }

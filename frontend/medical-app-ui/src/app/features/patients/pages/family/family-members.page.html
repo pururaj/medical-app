@@ -1,0 +1,217 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/patients/' + patientId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Family Members</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Primary patient context -->
+  @if (primaryPatient) {
+    <div class="context-banner">
+      <div class="context-avatar">{{ getInitials(primaryPatient) }}</div>
+      <div>
+        <div class="context-name">{{ primaryPatient.firstName }} {{ primaryPatient.lastName }}</div>
+        <div class="context-sub">Managing family members</div>
+      </div>
+    </div>
+  }
+
+  @if (loading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  }
+
+  @if (!loading) {
+    <div class="members-container">
+      @if (members.length === 0) {
+        <div class="empty-state">
+          <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+          <h3>No family members yet</h3>
+          <p>Add family members to manage their appointments and health records together.</p>
+        </div>
+      }
+
+      @for (member of members; track member.id) {
+        <ion-card class="member-card">
+          <ion-card-content>
+            <div class="member-row">
+              <div class="member-avatar" (click)="viewMember(member)">
+                {{ getInitials(member.memberPatient) }}
+              </div>
+              <div class="member-info" (click)="viewMember(member)">
+                <div class="member-name">
+                  {{ member.memberPatient?.firstName }} {{ member.memberPatient?.lastName }}
+                </div>
+                <ion-chip class="rel-chip" color="primary">
+                  <ion-icon name="heart-outline"></ion-icon>
+                  <ion-label>{{ relationLabel(member.relationship) }}</ion-label>
+                </ion-chip>
+                <div class="member-meta">
+                  <span>{{ getAge(member.memberPatient?.dateOfBirth) }} yrs</span>
+                  @if (member.memberPatient?.gender) {
+                    <span class="dot">·</span>
+                    <span>{{ member.memberPatient?.gender }}</span>
+                  }
+                  @if (member.memberPatient?.bloodType) {
+                    <span class="dot">·</span>
+                    <ion-badge color="danger" class="blood-badge">{{ member.memberPatient?.bloodType }}</ion-badge>
+                  }
+                </div>
+                @if (member.memberPatient?.phoneNumber) {
+                  <div class="member-phone">
+                    <ion-icon name="call-outline"></ion-icon>
+                    {{ member.memberPatient?.phoneNumber }}
+                  </div>
+                }
+              </div>
+              <ion-button fill="clear" color="danger" size="small" (click)="confirmRemove(member)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <!-- Add Member FAB -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="openModal('new')">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+
+<!-- ===== ADD MEMBER MODAL ===== -->
+<ion-modal [isOpen]="showModal" (didDismiss)="closeModal()" [breakpoints]="[0, 0.85, 1]" [initialBreakpoint]="0.85">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Add Family Member</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeModal()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <!-- Mode tabs -->
+      <div class="mode-tabs">
+        <button class="mode-tab" [class.active]="addMode === 'new'" (click)="switchMode('new')">
+          Register New Person
+        </button>
+        <button class="mode-tab" [class.active]="addMode === 'existing'" (click)="switchMode('existing')">
+          Link Existing Patient
+        </button>
+      </div>
+
+      <!-- Relationship (always shown) -->
+      <div class="form-group">
+        <ion-item [class.ion-invalid]="hasError('relationship','required')">
+          <ion-label position="stacked">Relationship <ion-text color="danger">*</ion-text></ion-label>
+          <ion-select [formControl]="$any(addForm.get('relationship'))" interface="action-sheet" placeholder="Select relationship">
+            @for (rel of relationships; track rel) {
+              <ion-select-option [value]="rel">{{ relationLabel(rel) }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        @if (hasError('relationship','required')) {
+          <ion-note color="danger" class="field-error">Please select a relationship</ion-note>
+        }
+      </div>
+
+      <!-- MODE: Link existing -->
+      @if (addMode === 'existing') {
+        <div class="form-group">
+          <ion-item>
+            <ion-label position="stacked">Patient ID <ion-text color="danger">*</ion-text></ion-label>
+            <ion-input [(ngModel)]="existingPatientId" type="number" inputmode="numeric" placeholder="Enter existing patient ID"></ion-input>
+          </ion-item>
+          <p class="hint-text">Enter the Patient ID of an already registered patient to link them as a family member.</p>
+        </div>
+      }
+
+      <!-- MODE: Register new -->
+      @if (addMode === 'new') {
+        <form [formGroup]="addForm">
+          <div class="form-group">
+            <ion-item [class.ion-invalid]="hasError('firstName','required')">
+              <ion-label position="stacked">First Name <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="firstName" placeholder="First name" autocapitalize="words"></ion-input>
+            </ion-item>
+            @if (hasError('firstName','required')) {
+              <ion-note color="danger" class="field-error">Required</ion-note>
+            }
+          </div>
+
+          <div class="form-group">
+            <ion-item [class.ion-invalid]="hasError('lastName','required')">
+              <ion-label position="stacked">Last Name <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="lastName" placeholder="Last name" autocapitalize="words"></ion-input>
+            </ion-item>
+            @if (hasError('lastName','required')) {
+              <ion-note color="danger" class="field-error">Required</ion-note>
+            }
+          </div>
+
+          <div class="form-group">
+            <ion-item [class.ion-invalid]="hasError('email','required') || hasError('email','email')">
+              <ion-label position="stacked">Email <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="email" type="email" placeholder="email@example.com" inputmode="email"></ion-input>
+            </ion-item>
+            @if (hasError('email','email')) {
+              <ion-note color="danger" class="field-error">Enter a valid email</ion-note>
+            }
+          </div>
+
+          <div class="form-group">
+            <ion-item [class.ion-invalid]="hasError('phoneNumber','required') || hasError('phoneNumber','pattern')">
+              <ion-label position="stacked">Phone <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="phoneNumber" type="tel" placeholder="+91 98765 43210" inputmode="tel"></ion-input>
+            </ion-item>
+            @if (hasError('phoneNumber','pattern')) {
+              <ion-note color="danger" class="field-error">Enter a valid phone number</ion-note>
+            }
+          </div>
+
+          <div class="form-group">
+            <ion-item [class.ion-invalid]="hasError('dateOfBirth','required')">
+              <ion-label position="stacked">Date of Birth <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="dateOfBirth" type="date" placeholder="YYYY-MM-DD"></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="form-group">
+            <ion-item [class.ion-invalid]="hasError('gender','required')">
+              <ion-label position="stacked">Gender <ion-text color="danger">*</ion-text></ion-label>
+              <ion-select formControlName="gender" interface="action-sheet" placeholder="Select gender">
+                <ion-select-option value="MALE">Male</ion-select-option>
+                <ion-select-option value="FEMALE">Female</ion-select-option>
+                <ion-select-option value="OTHER">Other</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+        </form>
+      }
+
+      <div class="modal-actions">
+        <ion-button expand="block" (click)="saveMember()" [disabled]="savingMember">
+          @if (savingMember) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+            Saving…
+          } @else {
+            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+            Add Family Member
+          }
+        </ion-button>
+        <ion-button expand="block" fill="outline" (click)="closeModal()">Cancel</ion-button>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

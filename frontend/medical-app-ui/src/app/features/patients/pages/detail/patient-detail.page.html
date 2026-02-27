@@ -1,0 +1,202 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/patients"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Patient Profile</ion-title>
+    <ion-buttons slot="end">
+      @if (patient) {
+        <ion-button (click)="editPatient()">
+          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (loading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  }
+
+  @if (error && !loading) {
+    <div class="error-state">
+      <ion-icon name="alert-circle-outline" color="danger" style="font-size:48px"></ion-icon>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  @if (patient && !loading) {
+    <!-- Hero -->
+    <div class="hero-section" [class]="'gender-' + patient.gender?.toLowerCase()">
+      <div class="avatar">{{ getInitials() }}</div>
+      <h1>{{ patient.firstName }} {{ patient.lastName }}</h1>
+      <div class="hero-meta">
+        <span>{{ getAge() }} years</span>
+        <span class="dot">·</span>
+        <span>{{ patient.gender }}</span>
+        @if (patient.bloodType) {
+          <span class="dot">·</span>
+          <ion-badge color="danger" class="blood-badge">{{ patient.bloodType }}</ion-badge>
+        }
+      </div>
+      @if (!patient.active) {
+        <ion-badge color="medium" class="inactive-badge">Inactive Account</ion-badge>
+      }
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="action-bar">
+      <div class="action-btn" (click)="bookAppointment()">
+        <ion-icon name="calendar-outline" color="primary"></ion-icon>
+        <span>Book Appt</span>
+      </div>
+      <div class="action-btn" (click)="goToFamilyMembers()">
+        <ion-icon name="people-outline" color="tertiary"></ion-icon>
+        <span>Family</span>
+      </div>
+      <div class="action-btn" (click)="editPatient()">
+        <ion-icon name="create-outline" color="warning"></ion-icon>
+        <span>Edit</span>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <ion-card class="info-card">
+      <ion-card-content>
+        <h3 class="card-title">Contact Information</h3>
+        <div class="info-row">
+          <ion-icon name="call-outline" color="primary"></ion-icon>
+          <div>
+            <div class="info-label">Phone</div>
+            <div class="info-value">{{ patient.phoneNumber }}</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <ion-icon name="mail-outline" color="primary"></ion-icon>
+          <div>
+            <div class="info-label">Email</div>
+            <div class="info-value">{{ patient.email }}</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <ion-icon name="calendar-outline" color="primary"></ion-icon>
+          <div>
+            <div class="info-label">Date of Birth</div>
+            <div class="info-value">{{ formatDate(patient.dateOfBirth) }}</div>
+          </div>
+        </div>
+        @if (patient.address || patient.city) {
+          <div class="info-row">
+            <ion-icon name="location-outline" color="primary"></ion-icon>
+            <div>
+              <div class="info-label">Address</div>
+              <div class="info-value">
+                {{ getAddress() }}
+              </div>
+            </div>
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Medical -->
+    <ion-card class="info-card">
+      <ion-card-content>
+        <h3 class="card-title">Medical Information</h3>
+
+        @if (patient.bloodType) {
+          <div class="info-row">
+            <ion-icon name="water-outline" color="danger"></ion-icon>
+            <div>
+              <div class="info-label">Blood Type</div>
+              <div class="info-value blood-type">{{ patient.bloodType }}</div>
+            </div>
+          </div>
+        }
+
+        @if (patient.allergies) {
+          <div class="info-row">
+            <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+            <div>
+              <div class="info-label">Known Allergies</div>
+              <div class="info-value allergy-text">{{ patient.allergies }}</div>
+            </div>
+          </div>
+        }
+
+        @if (patient.medicalHistory) {
+          <div class="info-row">
+            <ion-icon name="medkit-outline" color="primary"></ion-icon>
+            <div>
+              <div class="info-label">Medical History</div>
+              <div class="info-value">{{ patient.medicalHistory }}</div>
+            </div>
+          </div>
+        }
+
+        @if (!patient.bloodType && !patient.allergies && !patient.medicalHistory) {
+          <p class="no-data">No medical information recorded.</p>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Emergency Contact -->
+    @if (patient.emergencyContactName || patient.emergencyContactPhone) {
+      <ion-card class="info-card">
+        <ion-card-content>
+          <h3 class="card-title">Emergency Contact</h3>
+          @if (patient.emergencyContactName) {
+            <div class="info-row">
+              <ion-icon name="person-outline" color="primary"></ion-icon>
+              <div>
+                <div class="info-label">Contact Name</div>
+                <div class="info-value">{{ patient.emergencyContactName }}</div>
+              </div>
+            </div>
+          }
+          @if (patient.emergencyContactPhone) {
+            <div class="info-row">
+              <ion-icon name="call-outline" color="primary"></ion-icon>
+              <div>
+                <div class="info-label">Contact Phone</div>
+                <div class="info-value">{{ patient.emergencyContactPhone }}</div>
+              </div>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+    }
+
+    <!-- Registered -->
+    <ion-card class="info-card meta-card">
+      <ion-card-content>
+        <div class="meta-row">
+          <span>Patient ID</span><strong>#{{ patient.id }}</strong>
+        </div>
+        <div class="meta-row">
+          <span>Registered</span><strong>{{ formatDate(patient.createdAt) }}</strong>
+        </div>
+        <div class="meta-row">
+          <span>Status</span>
+          <ion-badge [color]="patient.active ? 'success' : 'medium'">
+            {{ patient.active ? 'Active' : 'Inactive' }}
+          </ion-badge>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    @if (patient.active) {
+      <div class="danger-zone">
+        <ion-button expand="block" fill="outline" color="danger" (click)="confirmDeactivate()">
+          <ion-icon slot="start" name="trash-outline"></ion-icon>
+          Deactivate Patient
+        </ion-button>
+      </div>
+    }
+
+    <div style="height: 32px;"></div>
+  }
+</ion-content>

@@ -1,0 +1,322 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ isFamilyMember ? 'Register Family Member' : 'New Patient Registration' }}</ion-title>
+  </ion-toolbar>
+
+  @if (!registrationDone) {
+    <ion-toolbar class="progress-toolbar">
+      <div class="step-bar">
+        @for (step of ['personal','medical','emergency']; track step; let i = $index) {
+          <div class="step-item" [class.active]="currentStep === step" [class.done]="stepIndex > i">
+            <div class="step-dot">
+              @if (stepIndex > i) {
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+              } @else {
+                {{ i + 1 }}
+              }
+            </div>
+            <span class="step-name">{{ stepLabel($any(step)) }}</span>
+          </div>
+          @if (i < 2) { <div class="step-line" [class.done]="stepIndex > i"></div> }
+        }
+      </div>
+      <ion-progress-bar [value]="progress" color="primary"></ion-progress-bar>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content>
+
+  <!-- ===== SUCCESS ===== -->
+  @if (registrationDone) {
+    <div class="success-screen">
+      <div class="success-circle">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+      </div>
+      <h2>Registration Successful!</h2>
+      <p>The patient has been registered successfully.</p>
+      @if (createdPatientId) {
+        <p class="patient-id-label">Patient ID: <strong>#{{ createdPatientId }}</strong></p>
+      }
+      <div class="success-actions">
+        <ion-button expand="block" (click)="viewProfile()">View Patient Profile</ion-button>
+        <ion-button expand="block" fill="outline" (click)="registerAnother()">Register Another</ion-button>
+      </div>
+    </div>
+  }
+
+  <!-- ===== STEP 1: PERSONAL INFO ===== -->
+  @if (!registrationDone && currentStep === 'personal') {
+    <div class="step-content">
+      <div class="step-heading">
+        <ion-icon name="person-outline" class="step-icon"></ion-icon>
+        <div>
+          <h2>Personal Information</h2>
+          <p>Basic demographic details</p>
+        </div>
+      </div>
+
+      <form [formGroup]="personalForm">
+        <ion-card>
+          <ion-card-content>
+            <div class="form-row">
+              <ion-item [class.ion-invalid]="hasError(personalForm,'firstName','required')">
+                <ion-label position="stacked">First Name <ion-text color="danger">*</ion-text></ion-label>
+                <ion-input formControlName="firstName" placeholder="Enter first name" autocapitalize="words"></ion-input>
+              </ion-item>
+              @if (hasError(personalForm,'firstName','required')) {
+                <ion-note color="danger" class="field-error">First name is required</ion-note>
+              }
+            </div>
+
+            <div class="form-row">
+              <ion-item [class.ion-invalid]="hasError(personalForm,'lastName','required')">
+                <ion-label position="stacked">Last Name <ion-text color="danger">*</ion-text></ion-label>
+                <ion-input formControlName="lastName" placeholder="Enter last name" autocapitalize="words"></ion-input>
+              </ion-item>
+              @if (hasError(personalForm,'lastName','required')) {
+                <ion-note color="danger" class="field-error">Last name is required</ion-note>
+              }
+            </div>
+
+            <div class="form-row">
+              <ion-item [class.ion-invalid]="hasError(personalForm,'email','required') || hasError(personalForm,'email','email')">
+                <ion-label position="stacked">Email Address <ion-text color="danger">*</ion-text></ion-label>
+                <ion-input formControlName="email" type="email" placeholder="example@email.com" inputmode="email"></ion-input>
+              </ion-item>
+              @if (hasError(personalForm,'email','required')) {
+                <ion-note color="danger" class="field-error">Email is required</ion-note>
+              }
+              @if (hasError(personalForm,'email','email')) {
+                <ion-note color="danger" class="field-error">Enter a valid email address</ion-note>
+              }
+            </div>
+
+            <div class="form-row">
+              <ion-item [class.ion-invalid]="hasError(personalForm,'phoneNumber','required') || hasError(personalForm,'phoneNumber','pattern')">
+                <ion-label position="stacked">Phone Number <ion-text color="danger">*</ion-text></ion-label>
+                <ion-input formControlName="phoneNumber" type="tel" placeholder="+91 98765 43210" inputmode="tel"></ion-input>
+              </ion-item>
+              @if (hasError(personalForm,'phoneNumber','required')) {
+                <ion-note color="danger" class="field-error">Phone number is required</ion-note>
+              }
+              @if (hasError(personalForm,'phoneNumber','pattern')) {
+                <ion-note color="danger" class="field-error">Enter a valid phone number (10–20 digits)</ion-note>
+              }
+            </div>
+
+            <div class="form-row">
+              <ion-item [class.ion-invalid]="hasError(personalForm,'dateOfBirth','required')">
+                <ion-label position="stacked">Date of Birth <ion-text color="danger">*</ion-text></ion-label>
+                <ion-input
+                  formControlName="dateOfBirth"
+                  type="date"
+                  [max]="maxDob.substring(0,10)"
+                  placeholder="YYYY-MM-DD">
+                </ion-input>
+              </ion-item>
+              @if (hasError(personalForm,'dateOfBirth','required')) {
+                <ion-note color="danger" class="field-error">Date of birth is required</ion-note>
+              }
+            </div>
+
+            <div class="form-row">
+              <ion-item [class.ion-invalid]="hasError(personalForm,'gender','required')">
+                <ion-label position="stacked">Gender <ion-text color="danger">*</ion-text></ion-label>
+                <ion-select formControlName="gender" interface="action-sheet" placeholder="Select gender">
+                  <ion-select-option value="MALE">Male</ion-select-option>
+                  <ion-select-option value="FEMALE">Female</ion-select-option>
+                  <ion-select-option value="OTHER">Other</ion-select-option>
+                </ion-select>
+              </ion-item>
+              @if (hasError(personalForm,'gender','required')) {
+                <ion-note color="danger" class="field-error">Gender is required</ion-note>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-content>
+            <p class="section-sub">Address (Optional)</p>
+
+            <ion-item>
+              <ion-label position="stacked">Street Address</ion-label>
+              <ion-input formControlName="address" placeholder="House No., Street, Area"></ion-input>
+            </ion-item>
+
+            <div class="two-col">
+              <ion-item>
+                <ion-label position="stacked">City</ion-label>
+                <ion-input formControlName="city" placeholder="City"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">State</ion-label>
+                <ion-input formControlName="state" placeholder="State"></ion-input>
+              </ion-item>
+            </div>
+
+            <div class="two-col">
+              <ion-item>
+                <ion-label position="stacked">ZIP / PIN Code</ion-label>
+                <ion-input formControlName="zipCode" inputmode="numeric" placeholder="400001"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Country</ion-label>
+                <ion-input formControlName="country" placeholder="India"></ion-input>
+              </ion-item>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </form>
+
+      <div class="bottom-action">
+        <ion-button expand="block" (click)="nextStep()">
+          Continue to Medical Info
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  }
+
+  <!-- ===== STEP 2: MEDICAL INFO ===== -->
+  @if (!registrationDone && currentStep === 'medical') {
+    <div class="step-content">
+      <div class="step-heading">
+        <ion-icon name="medkit-outline" class="step-icon"></ion-icon>
+        <div>
+          <h2>Medical Information</h2>
+          <p>Health details and medical history (all optional)</p>
+        </div>
+      </div>
+
+      <form [formGroup]="medicalForm">
+        <ion-card>
+          <ion-card-content>
+            <ion-item>
+              <ion-label position="stacked">Blood Type</ion-label>
+              <ion-select formControlName="bloodType" interface="action-sheet" placeholder="Select blood type">
+                <ion-select-option value="">Unknown</ion-select-option>
+                <ion-select-option value="A+">A+</ion-select-option>
+                <ion-select-option value="A-">A−</ion-select-option>
+                <ion-select-option value="B+">B+</ion-select-option>
+                <ion-select-option value="B-">B−</ion-select-option>
+                <ion-select-option value="O+">O+</ion-select-option>
+                <ion-select-option value="O-">O−</ion-select-option>
+                <ion-select-option value="AB+">AB+</ion-select-option>
+                <ion-select-option value="AB-">AB−</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item class="textarea-item">
+              <ion-label position="stacked">Known Allergies</ion-label>
+              <ion-textarea
+                formControlName="allergies"
+                placeholder="e.g. Penicillin, Peanuts, Latex…"
+                [rows]="3"
+                autoGrow>
+              </ion-textarea>
+            </ion-item>
+
+            <ion-item class="textarea-item">
+              <ion-label position="stacked">Medical History</ion-label>
+              <ion-textarea
+                formControlName="medicalHistory"
+                placeholder="e.g. Diabetes Type 2 (2018), Hypertension, Past surgeries…"
+                [rows]="4"
+                autoGrow>
+              </ion-textarea>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      </form>
+
+      <div class="bottom-action">
+        <ion-button expand="block" (click)="nextStep()">
+          Continue to Emergency Contact
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+        </ion-button>
+        <ion-button expand="block" fill="clear" (click)="nextStep()">Skip this step</ion-button>
+      </div>
+    </div>
+  }
+
+  <!-- ===== STEP 3: EMERGENCY CONTACT ===== -->
+  @if (!registrationDone && currentStep === 'emergency') {
+    <div class="step-content">
+      <div class="step-heading">
+        <ion-icon name="call-outline" class="step-icon"></ion-icon>
+        <div>
+          <h2>Emergency Contact</h2>
+          <p>Person to notify in case of emergency (optional)</p>
+        </div>
+      </div>
+
+      <form [formGroup]="emergencyForm">
+        <ion-card>
+          <ion-card-content>
+            <ion-item>
+              <ion-label position="stacked">Contact Name</ion-label>
+              <ion-input formControlName="emergencyContactName" placeholder="Full name" autocapitalize="words"></ion-input>
+            </ion-item>
+
+            <div class="form-row">
+              <ion-item [class.ion-invalid]="hasError(emergencyForm,'emergencyContactPhone','pattern')">
+                <ion-label position="stacked">Contact Phone</ion-label>
+                <ion-input formControlName="emergencyContactPhone" type="tel" placeholder="+91 98765 43210" inputmode="tel"></ion-input>
+              </ion-item>
+              @if (hasError(emergencyForm,'emergencyContactPhone','pattern')) {
+                <ion-note color="danger" class="field-error">Enter a valid phone number</ion-note>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </form>
+
+      <!-- Summary before submit -->
+      <ion-card class="summary-card">
+        <ion-card-content>
+          <p class="section-sub">Registration Summary</p>
+          <div class="summary-row">
+            <span>Name</span>
+            <strong>{{ personalForm.value.firstName }} {{ personalForm.value.lastName }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Email</span>
+            <strong>{{ personalForm.value.email }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Phone</span>
+            <strong>{{ personalForm.value.phoneNumber }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Date of Birth</span>
+            <strong>{{ personalForm.value.dateOfBirth }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Gender</span>
+            <strong>{{ personalForm.value.gender }}</strong>
+          </div>
+          @if (medicalForm.value.bloodType) {
+            <div class="summary-row">
+              <span>Blood Type</span>
+              <strong>{{ medicalForm.value.bloodType }}</strong>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+
+      <div class="bottom-action">
+        <ion-button expand="block" color="success" (click)="submitRegistration()">
+          <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+          Complete Registration
+        </ion-button>
+      </div>
+    </div>
+  }
+</ion-content>

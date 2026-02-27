@@ -1,0 +1,161 @@
+.context-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--ion-color-primary-tint);
+  border-bottom: 1px solid var(--ion-color-primary-shade);
+
+  .context-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ion-color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .context-name { font-weight: 600; font-size: 14px; }
+  .context-sub { font-size: 12px; color: var(--ion-color-medium); }
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 60px;
+}
+
+.members-container { padding: 12px 12px 80px; }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--ion-color-medium);
+
+  .empty-icon { font-size: 72px; display: block; opacity: 0.35; margin-bottom: 16px; }
+  h3 { margin: 0 0 8px; color: var(--ion-color-dark); }
+  p { font-size: 14px; margin: 0; }
+}
+
+.member-card {
+  border-radius: 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.member-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  .member-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ion-color-tertiary, #5260ff), var(--ion-color-primary));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .member-info {
+    flex: 1;
+    cursor: pointer;
+
+    .member-name {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .rel-chip {
+      height: 22px;
+      font-size: 12px;
+      margin: 2px 0 6px;
+    }
+
+    .member-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--ion-color-medium);
+      margin-bottom: 4px;
+
+      .dot { opacity: 0.5; }
+      .blood-badge { height: 16px; font-size: 10px; }
+    }
+
+    .member-phone {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--ion-color-medium);
+
+      ion-icon { font-size: 12px; }
+    }
+  }
+}
+
+// Modal styles
+.mode-tabs {
+  display: flex;
+  border-radius: 12px;
+  background: var(--ion-color-light);
+  padding: 4px;
+  margin-bottom: 16px;
+
+  .mode-tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.active {
+      background: white;
+      color: var(--ion-color-primary);
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+  }
+}
+
+.form-group { margin-bottom: 4px; }
+
+.field-error {
+  font-size: 11px;
+  padding: 2px 16px 6px;
+  display: block;
+}
+
+.hint-text {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  padding: 6px 16px;
+  margin: 0;
+}
+
+.modal-actions {
+  padding: 16px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  ion-button { --border-radius: 12px; }
+}
