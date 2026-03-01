@@ -1,0 +1,68 @@
+<ion-content class="login-content">
+  <div class="login-wrapper">
+
+    <div class="logo-section">
+      <ion-icon name="medkit-outline" class="logo-icon"></ion-icon>
+      <h1 class="app-name">MedApp</h1>
+      <p class="app-tagline">Healthcare Management System</p>
+    </div>
+
+    <ion-card class="login-card">
+      <ion-card-header>
+        <ion-card-title>Sign In</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="form" (ngSubmit)="onLogin()">
+
+          <ion-item class="form-item" lines="full">
+            <ion-icon name="person-outline" slot="start"></ion-icon>
+            <ion-input
+              formControlName="username"
+              label="Username"
+              labelPlacement="floating"
+              placeholder="Enter your username"
+              autocomplete="username">
+            </ion-input>
+          </ion-item>
+          @if (form.get('username')?.invalid && form.get('username')?.touched) {
+            <ion-text color="danger" class="error-text">Username is required</ion-text>
+          }
+
+          <ion-item class="form-item" lines="full" style="margin-top: 12px;">
+            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+            <ion-input
+              formControlName="password"
+              type="password"
+              label="Password"
+              labelPlacement="floating"
+              placeholder="Enter your password"
+              autocomplete="current-password">
+            </ion-input>
+          </ion-item>
+          @if (form.get('password')?.invalid && form.get('password')?.touched) {
+            <ion-text color="danger" class="error-text">Password is required</ion-text>
+          }
+
+          <ion-button
+            expand="block"
+            type="submit"
+            class="login-btn"
+            [disabled]="loading">
+            @if (loading) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              Signing in…
+            } @else {
+              Sign In
+            }
+          </ion-button>
+
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <p class="test-hint">
+      Test: admin/admin123 · doctor1/doctor123 · receptionist1/recep123
+    </p>
+
+  </div>
+</ion-content>

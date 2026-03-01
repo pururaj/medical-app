@@ -12,6 +12,10 @@
     "lint": "ng lint",
     "e2e": "cypress open",
     "e2e:headless": "cypress run",
+    "playwright": "playwright test",
+    "playwright:ui": "playwright test --ui",
+    "playwright:report": "playwright show-report",
+    "playwright:headed": "playwright test --headed",
     "ionic:serve": "ionic serve",
     "ionic:build": "ionic build"
   },
@@ -48,6 +52,7 @@
     "@angular/compiler-cli": "^18.0.0",
     "@capacitor/cli": "^6.0.0",
     "@ionic/angular-toolkit": "^11.0.0",
+    "@playwright/test": "^1.58.2",
     "@types/jasmine": "^5.1.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
