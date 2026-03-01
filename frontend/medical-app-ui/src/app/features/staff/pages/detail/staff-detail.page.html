@@ -1,0 +1,175 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/staff"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Staff Profile</ion-title>
+    @if (staff) {
+      <ion-buttons slot="end">
+        <ion-button (click)="editStaff()" fill="clear" color="light">
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (loading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Loading profile...</p>
+    </div>
+  }
+
+  @if (!loading && staff) {
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <div class="avatar" [class]="'role-' + staff.role.toLowerCase()">
+        {{ staff.firstName.charAt(0) }}{{ staff.lastName.charAt(0) }}
+      </div>
+      <h1>{{ staff.firstName }} {{ staff.lastName }}</h1>
+      <div class="badges">
+        <ion-chip [color]="getRoleBadgeColor(staff.role)">
+          <ion-label>{{ getRoleLabel(staff.role) }}</ion-label>
+        </ion-chip>
+        <ion-chip [color]="staff.active ? 'success' : 'danger'" outline>
+          <ion-icon [name]="staff.active ? 'checkmark-circle-outline' : 'close-circle-outline'" slot="start"></ion-icon>
+          <ion-label>{{ staff.active ? 'Active' : 'Inactive' }}</ion-label>
+        </ion-chip>
+      </div>
+      <p class="username">&#64;{{ staff.username }}</p>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="section-title">Contact Information</div>
+    <ion-card class="detail-card">
+      <ion-card-content>
+        <div class="detail-row">
+          <ion-icon name="mail-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">Email</span>
+            <span class="value">{{ staff.email }}</span>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="call-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">Phone</span>
+            <span class="value">{{ staff.phoneNumber || '—' }}</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Work Info -->
+    <div class="section-title">Work Information</div>
+    <ion-card class="detail-card">
+      <ion-card-content>
+        <div class="detail-row">
+          <ion-icon name="briefcase-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">Department</span>
+            <span class="value">{{ staff.department || '—' }}</span>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="time-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">Shift</span>
+            <span class="value">{{ getShiftLabel(staff.shift) }}</span>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="calendar-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">Joining Date</span>
+            <span class="value">{{ formatDate(staff.joiningDate) }}</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Credentials -->
+    <div class="section-title">Credentials</div>
+    <ion-card class="detail-card">
+      <ion-card-content>
+        <div class="detail-row">
+          <ion-icon name="ribbon-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">Qualification</span>
+            <span class="value">{{ staff.qualification || '—' }}</span>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="id-card-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">License Number</span>
+            <span class="value">{{ staff.licenseNumber || '—' }}</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- System Info -->
+    <div class="section-title">System Information</div>
+    <ion-card class="detail-card">
+      <ion-card-content>
+        <div class="detail-row">
+          <ion-icon name="shield-checkmark-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">System Role</span>
+            <span class="value">{{ getRoleLabel(staff.role) }}</span>
+          </div>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="person-outline" color="primary"></ion-icon>
+          <div class="detail-content">
+            <span class="label">Username</span>
+            <span class="value">{{ staff.username }}</span>
+          </div>
+        </div>
+        @if (staff.createdAt) {
+          <div class="detail-row">
+            <ion-icon name="calendar-outline" color="primary"></ion-icon>
+            <div class="detail-content">
+              <span class="label">Member Since</span>
+              <span class="value">{{ formatDate(staff.createdAt) }}</span>
+            </div>
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Actions -->
+    <div class="action-section">
+      <ion-button
+        expand="block"
+        [color]="staff.active ? 'warning' : 'success'"
+        fill="outline"
+        (click)="confirmToggle()"
+        [disabled]="toggling">
+        <ion-icon name="toggle-outline" slot="start"></ion-icon>
+        {{ staff.active ? 'Deactivate Staff' : 'Activate Staff' }}
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        color="primary"
+        (click)="editStaff()">
+        <ion-icon name="create-outline" slot="start"></ion-icon>
+        Edit Profile
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        color="danger"
+        fill="outline"
+        (click)="confirmDelete()">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Remove Staff
+      </ion-button>
+    </div>
+  }
+</ion-content>

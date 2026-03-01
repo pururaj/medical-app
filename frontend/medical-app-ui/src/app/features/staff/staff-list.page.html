@@ -1,0 +1,126 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Staff Management</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="addStaff()" fill="clear" color="light">
+        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadStaff($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Search + Filter -->
+  <div class="filter-section">
+    <ion-searchbar
+      [(ngModel)]="searchQuery"
+      (ionChange)="onSearchChange()"
+      placeholder="Search by name or email"
+      debounce="300"
+      animated>
+    </ion-searchbar>
+
+    <div class="filter-row">
+      <ion-select
+        [(ngModel)]="selectedRole"
+        (ionChange)="onFilterChange()"
+        placeholder="All Roles"
+        interface="action-sheet"
+        class="role-select">
+        <ion-select-option value="">All Roles</ion-select-option>
+        @for (r of roles; track r.value) {
+          <ion-select-option [value]="r.value">{{ r.label }}</ion-select-option>
+        }
+      </ion-select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Loading staff...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading && staff.length === 0) {
+    <div class="empty-state">
+      <ion-icon name="people-circle-outline" color="medium"></ion-icon>
+      <ion-text color="medium">
+        <h3>No staff members found</h3>
+        <p>Try adjusting your filters or add a new staff member.</p>
+      </ion-text>
+      <ion-button (click)="addStaff()" expand="block" color="primary" class="add-btn">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Add Staff Member
+      </ion-button>
+    </div>
+  }
+
+  <!-- Staff List -->
+  @if (!loading && staff.length > 0) {
+    <div class="staff-count">
+      <ion-text color="medium">{{ staff.length }} staff member{{ staff.length !== 1 ? 's' : '' }}</ion-text>
+    </div>
+
+    @for (member of staff; track member.id) {
+      <ion-item-sliding #slidingItem>
+        <ion-item lines="none" class="staff-item" (click)="viewStaff(member)" detail="false" button>
+          <ion-card class="staff-card">
+            <ion-card-content>
+              <div class="card-header">
+                <div class="avatar" [class]="'role-' + member.role.toLowerCase()">
+                  {{ member.firstName.charAt(0) }}{{ member.lastName.charAt(0) }}
+                </div>
+                <div class="info">
+                  <h2>{{ member.firstName }} {{ member.lastName }}</h2>
+                  <ion-chip [color]="getRoleBadgeColor(member.role)" class="role-chip">
+                    <ion-label>{{ getRoleLabel(member.role) }}</ion-label>
+                  </ion-chip>
+                </div>
+                <div class="status">
+                  <ion-chip [color]="member.active ? 'success' : 'danger'" class="status-chip" outline>
+                    <ion-icon [name]="member.active ? 'checkmark-circle-outline' : 'close-circle-outline'" slot="start"></ion-icon>
+                    <ion-label>{{ member.active ? 'Active' : 'Inactive' }}</ion-label>
+                  </ion-chip>
+                </div>
+              </div>
+
+              <div class="card-details">
+                @if (member.department) {
+                  <div class="detail-item">
+                    <ion-icon name="briefcase-outline" color="medium"></ion-icon>
+                    <span>{{ member.department }}</span>
+                  </div>
+                }
+                <div class="detail-item">
+                  <ion-icon name="time-outline" color="medium"></ion-icon>
+                  <span>{{ getShiftLabel(member.shift) }} Shift</span>
+                </div>
+                <div class="detail-item">
+                  <ion-icon name="mail-outline" color="medium"></ion-icon>
+                  <span>{{ member.email }}</span>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="confirmDelete(member, slidingItem)">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    }
+  }
+</ion-content>

@@ -1,0 +1,236 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/staff"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ isEditMode ? 'Edit Staff' : 'Add Staff Member' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (loading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Loading staff details...</p>
+    </div>
+  }
+
+  @if (!loading) {
+    <form [formGroup]="form">
+
+      <!-- Account Section (create only) -->
+      @if (!isEditMode) {
+        <div class="section-title">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          Account Details
+        </div>
+        <ion-card class="form-card">
+          <ion-card-content>
+
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">Username <span class="required">*</span></ion-label>
+              <ion-input
+                formControlName="username"
+                placeholder="e.g. john_nurse"
+                autocomplete="off"
+                clearInput>
+              </ion-input>
+              @if (hasError('username', 'required')) {
+                <ion-note color="danger" slot="error">Username is required</ion-note>
+              }
+              @if (hasError('username', 'minlength')) {
+                <ion-note color="danger" slot="error">Minimum 3 characters</ion-note>
+              }
+            </ion-item>
+
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">Password <span class="required">*</span></ion-label>
+              <ion-input
+                formControlName="password"
+                type="password"
+                placeholder="Min 6 characters"
+                clearInput>
+              </ion-input>
+              @if (hasError('password', 'required')) {
+                <ion-note color="danger" slot="error">Password is required</ion-note>
+              }
+              @if (hasError('password', 'minlength')) {
+                <ion-note color="danger" slot="error">Minimum 6 characters</ion-note>
+              }
+            </ion-item>
+
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">Role <span class="required">*</span></ion-label>
+              <ion-select
+                formControlName="role"
+                (ionChange)="onSelectChange('role', $event)"
+                placeholder="Select role"
+                interface="action-sheet">
+                @for (r of roles; track r.value) {
+                  <ion-select-option [value]="r.value">{{ r.label }}</ion-select-option>
+                }
+              </ion-select>
+              @if (hasError('role', 'required')) {
+                <ion-note color="danger" slot="error">Role is required</ion-note>
+              }
+            </ion-item>
+
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- Personal Info -->
+      <div class="section-title">
+        <ion-icon name="person-outline"></ion-icon>
+        Personal Information
+      </div>
+      <ion-card class="form-card">
+        <ion-card-content>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">First Name <span class="required">*</span></ion-label>
+            <ion-input
+              formControlName="firstName"
+              placeholder="First name"
+              autocapitalize="words"
+              clearInput>
+            </ion-input>
+            @if (hasError('firstName', 'required')) {
+              <ion-note color="danger" slot="error">First name is required</ion-note>
+            }
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Last Name <span class="required">*</span></ion-label>
+            <ion-input
+              formControlName="lastName"
+              placeholder="Last name"
+              autocapitalize="words"
+              clearInput>
+            </ion-input>
+            @if (hasError('lastName', 'required')) {
+              <ion-note color="danger" slot="error">Last name is required</ion-note>
+            }
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Email <span class="required">*</span></ion-label>
+            <ion-input
+              formControlName="email"
+              type="email"
+              placeholder="email@hospital.com"
+              autocomplete="email"
+              clearInput>
+            </ion-input>
+            @if (hasError('email', 'required')) {
+              <ion-note color="danger" slot="error">Email is required</ion-note>
+            }
+            @if (hasError('email', 'email')) {
+              <ion-note color="danger" slot="error">Enter a valid email</ion-note>
+            }
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Phone Number</ion-label>
+            <ion-input
+              formControlName="phoneNumber"
+              type="tel"
+              placeholder="+91 9876543210"
+              clearInput>
+            </ion-input>
+          </ion-item>
+
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Work Details -->
+      <div class="section-title">
+        <ion-icon name="briefcase-outline"></ion-icon>
+        Work Details
+      </div>
+      <ion-card class="form-card">
+        <ion-card-content>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Department</ion-label>
+            <ion-input
+              formControlName="department"
+              placeholder="e.g. Emergency, Cardiology"
+              clearInput>
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Shift</ion-label>
+            <ion-select
+              formControlName="shift"
+              (ionChange)="onSelectChange('shift', $event)"
+              interface="action-sheet"
+              placeholder="Select shift">
+              @for (s of shifts; track s.value) {
+                <ion-select-option [value]="s.value">{{ s.label }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Qualification</ion-label>
+            <ion-input
+              formControlName="qualification"
+              placeholder="e.g. B.Sc Nursing, MBBS"
+              clearInput>
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">License Number</ion-label>
+            <ion-input
+              formControlName="licenseNumber"
+              placeholder="e.g. NMC-2024-001"
+              clearInput>
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Joining Date</ion-label>
+            <ion-input
+              formControlName="joiningDate"
+              type="date"
+              placeholder="YYYY-MM-DD">
+            </ion-input>
+          </ion-item>
+
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Password update (edit mode) -->
+      @if (isEditMode) {
+        <div class="section-title">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          Change Password <span class="optional">(optional)</span>
+        </div>
+        <ion-card class="form-card">
+          <ion-card-content>
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">New Password</ion-label>
+              <ion-input
+                formControlName="password"
+                type="password"
+                placeholder="Leave blank to keep current"
+                clearInput>
+              </ion-input>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <div class="submit-container">
+        <ion-button expand="block" color="primary" (click)="submit()">
+          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+          {{ isEditMode ? 'Save Changes' : 'Create Staff Member' }}
+        </ion-button>
+      </div>
+
+    </form>
+  }
+</ion-content>
