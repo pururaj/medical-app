@@ -2,6 +2,7 @@ package com.medical.appointment.controller;
 
 import com.medical.appointment.dto.AppointmentBookingRequest;
 import com.medical.appointment.dto.AppointmentDto;
+import com.medical.appointment.dto.QueueStatusDto;
 import com.medical.appointment.dto.TimeSlotDto;
 import com.medical.appointment.service.AppointmentService;
 import com.medical.shared.dto.ApiResponse;
@@ -70,6 +71,13 @@ public class AppointmentController {
             @RequestParam(defaultValue = "10") int size) {
         PageResponse<AppointmentDto> appointments = appointmentService.getAppointmentsByDoctor(doctorId, page, size);
         return ResponseEntity.ok(ApiResponse.success(appointments));
+    }
+
+    @GetMapping("/{id}/queue-status")
+    @Operation(summary = "Get live queue status for an appointment")
+    public ResponseEntity<ApiResponse<QueueStatusDto>> getQueueStatus(@PathVariable Long id) {
+        QueueStatusDto status = appointmentService.getQueueStatus(id);
+        return ResponseEntity.ok(ApiResponse.success(status));
     }
 
     @GetMapping("/doctor/{doctorId}/today")

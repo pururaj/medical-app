@@ -5,6 +5,12 @@ spring:
   cloud:
     gateway:
       routes:
+        # Auth Service Routes (public — no JWT needed)
+        - id: auth-service
+          uri: http://localhost:8086
+          predicates:
+            - Path=/auth/**
+
         # Patient Service Routes
         - id: patient-service
           uri: http://localhost:8081
@@ -24,6 +30,14 @@ spring:
             - Path=/api/v1/appointments/**
           filters:
             - RewritePath=/api/v1/appointments/(?<segment>.*), /api/v1/appointments/$\{segment}
+
+        # Staff Management Routes (proxied to auth-service)
+        - id: staff-service
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/v1/staff/**
+          filters:
+            - RewritePath=/api/v1/staff/(?<segment>.*), /api/v1/staff/$\{segment}
 
         # Doctor Service Routes
         - id: doctor-service
@@ -68,6 +82,9 @@ spring:
               - "*"
             allowCredentials: true
             maxAge: 3600
+
+jwt:
+  secret: medapp-jwt-secret-key-2024-very-long-and-secure-minimum-32-chars
 
 server:
   port: 8080

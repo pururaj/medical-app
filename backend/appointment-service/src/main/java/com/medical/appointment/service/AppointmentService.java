@@ -2,6 +2,7 @@ package com.medical.appointment.service;
 
 import com.medical.appointment.dto.AppointmentBookingRequest;
 import com.medical.appointment.dto.AppointmentDto;
+import com.medical.appointment.dto.QueueStatusDto;
 import com.medical.appointment.dto.TimeSlotDto;
 import com.medical.appointment.entity.Appointment;
 import com.medical.appointment.entity.DoctorLeave;
@@ -212,6 +213,115 @@ public class AppointmentService {
         return appointments.stream()
                 .map(appointmentMapper::toDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public QueueStatusDto getQueueStatus(Long appointmentId) {
+        log.info("Fetching queue status for appointment {}", appointmentId);
+        Appointment target = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
+
+        Appointment.AppointmentStatus status = target.getStatus();
+
+        // Terminal statuses — no active queue position
+        if (status == Appointment.AppointmentStatus.COMPLETED
+                || status == Appointment.AppointmentStatus.CANCELLED
+                || status == Appointment.AppointmentStatus.NO_SHOW) {
+            return QueueStatusDto.builder()
+                    .appointmentId(appointmentId)
+                    .tokenNumber(target.getTokenNumber())
+                    .status(status)
+                    .positionInQueue(0)
+                    .patientsAhead(0)
+                    .estimatedWaitMinutes(0)
+                    .message(buildTerminalMessage(status))
+                    .build();
+        }
+
+        // Currently in consultation
+        if (status == Appointment.AppointmentStatus.IN_PROGRESS) {
+            return QueueStatusDto.builder()
+                    .appointmentId(appointmentId)
+                    .tokenNumber(target.getTokenNumber())
+                    .status(status)
+                    .positionInQueue(0)
+                    .patientsAhead(0)
+                    .currentlyServingToken(target.getTokenNumber())
+                    .estimatedWaitMinutes(0)
+                    .message("Doctor is ready for you — consultation in progress!")
+                    .build();
+        }
+
+        // Not yet checked in (SCHEDULED, CONFIRMED, RESCHEDULED)
+        List<Appointment> inProgressList = appointmentRepository
+                .findByDoctorIdAndAppointmentDateAndStatus(
+                        target.getDoctorId(), target.getAppointmentDate(),
+                        Appointment.AppointmentStatus.IN_PROGRESS);
+        Integer servingToken = inProgressList.isEmpty() ? null : inProgressList.get(0).getTokenNumber();
+
+        if (status == Appointment.AppointmentStatus.SCHEDULED
+                || status == Appointment.AppointmentStatus.CONFIRMED
+                || status == Appointment.AppointmentStatus.RESCHEDULED) {
+            return QueueStatusDto.builder()
+                    .appointmentId(appointmentId)
+                    .tokenNumber(target.getTokenNumber())
+                    .status(status)
+                    .positionInQueue(-1)
+                    .patientsAhead(-1)
+                    .currentlyServingToken(servingToken)
+                    .estimatedWaitMinutes(0)
+                    .message("Please check in at reception when you arrive.")
+                    .build();
+        }
+
+        // CHECKED_IN — compute real queue position
+        List<Appointment> checkedInQueue = appointmentRepository
+                .findCheckedInByDoctorAndDate(target.getDoctorId(), target.getAppointmentDate());
+
+        int patientsAhead = 0;
+        int waitMinutes = 0;
+        for (Appointment a : checkedInQueue) {
+            if (a.getTokenNumber() < target.getTokenNumber()) {
+                patientsAhead++;
+                waitMinutes += (a.getDurationMinutes() != null ? a.getDurationMinutes() : 30);
+            }
+        }
+
+        // Add remaining time for the in-progress patient
+        if (!inProgressList.isEmpty()) {
+            Appointment ip = inProgressList.get(0);
+            if (ip.getConsultationStartedAt() != null) {
+                long elapsed = java.time.Duration.between(ip.getConsultationStartedAt(), LocalDateTime.now()).toMinutes();
+                int remaining = Math.max(0, (ip.getDurationMinutes() != null ? ip.getDurationMinutes() : 30) - (int) elapsed);
+                waitMinutes += remaining;
+            }
+        }
+
+        int positionInQueue = patientsAhead + 1;
+        String message = patientsAhead == 0
+                ? "You are next! Please be ready."
+                : String.format("You are #%d in line — approximately %d minute%s wait.",
+                        positionInQueue, waitMinutes, waitMinutes == 1 ? "" : "s");
+
+        return QueueStatusDto.builder()
+                .appointmentId(appointmentId)
+                .tokenNumber(target.getTokenNumber())
+                .status(status)
+                .positionInQueue(positionInQueue)
+                .patientsAhead(patientsAhead)
+                .currentlyServingToken(servingToken)
+                .estimatedWaitMinutes(waitMinutes)
+                .message(message)
+                .build();
+    }
+
+    private String buildTerminalMessage(Appointment.AppointmentStatus status) {
+        return switch (status) {
+            case COMPLETED -> "Your consultation is complete. Thank you!";
+            case CANCELLED -> "This appointment has been cancelled.";
+            case NO_SHOW   -> "This appointment was marked as a no-show.";
+            default        -> status.name();
+        };
     }
 
     @Transactional

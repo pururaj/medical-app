@@ -38,6 +38,7 @@
         <module>appointment-service</module>
         <module>doctor-service</module>
         <module>api-gateway</module>
+        <module>auth-service</module>
     </modules>
 
     <dependencyManagement>

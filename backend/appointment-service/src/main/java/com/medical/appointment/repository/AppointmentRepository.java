@@ -69,4 +69,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findAppointmentsBetweenDates(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT a FROM Appointment a WHERE a.doctorId = :doctorId " +
+           "AND a.appointmentDate = :date AND a.status = 'CHECKED_IN' " +
+           "ORDER BY a.tokenNumber ASC")
+    List<Appointment> findCheckedInByDoctorAndDate(
+            @Param("doctorId") Long doctorId,
+            @Param("date") LocalDate date);
 }
