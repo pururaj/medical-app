@@ -1,0 +1,221 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/appointments"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Appointment Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  @if (loading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  }
+
+  @if (error && !loading) {
+    <div class="error-state">
+      <ion-icon name="close-circle-outline" color="danger" style="font-size:48px"></ion-icon>
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  @if (appointment && !loading) {
+
+    <!-- ===== Hero Card ===== -->
+    <ion-card class="hero-card">
+      <ion-card-content>
+        <div class="hero-row">
+          <div class="doctor-avatar">{{ appointment.doctorName?.charAt(0) ?? 'D' }}</div>
+          <div class="hero-info">
+            <h2>{{ appointment.doctorName }}</h2>
+            <p class="specialization">{{ appointment.specialization }}</p>
+            <ion-chip [color]="getStatusConfig(appointment.status ?? '').color" class="status-chip">
+              <ion-icon [name]="getStatusConfig(appointment.status ?? '').icon"></ion-icon>
+              <ion-label>{{ getStatusConfig(appointment.status ?? '').label }}</ion-label>
+            </ion-chip>
+          </div>
+          @if (appointment.tokenNumber) {
+            <div class="token-badge">
+              <span class="token-label">Token</span>
+              <span class="token-number">#{{ appointment.tokenNumber }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="info-rows">
+          <div class="info-row">
+            <ion-icon name="calendar-outline" color="primary"></ion-icon>
+            <span>{{ formatDate(appointment.appointmentDate) }}</span>
+          </div>
+          <div class="info-row">
+            <ion-icon name="time-outline" color="primary"></ion-icon>
+            <span>{{ formatTime(appointment.appointmentTime) }}</span>
+          </div>
+          @if (appointment.type) {
+            <div class="info-row">
+              <ion-icon name="medkit-outline" color="primary"></ion-icon>
+              <span>{{ appointment.type?.replace('_', ' ') | titlecase }}</span>
+            </div>
+          }
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- ===== Queue Widget (CHECKED_IN or IN_PROGRESS) ===== -->
+    @if (showQueueWidget && queueStatus) {
+      <ion-card class="queue-card">
+        <ion-card-header>
+          <ion-card-title>
+            <ion-icon name="people-outline"></ion-icon>
+            Live Queue Status
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          @if (appointment.status === 'IN_PROGRESS') {
+            <div class="in-progress-state">
+              <ion-icon name="medkit-outline" color="success"></ion-icon>
+              <p>Consultation in progress</p>
+            </div>
+          } @else {
+            <div class="queue-stats">
+              <div class="q-stat">
+                <span class="q-value">{{ queueStatus.positionInQueue }}</span>
+                <span class="q-label">Position</span>
+              </div>
+              <div class="q-divider"></div>
+              <div class="q-stat">
+                <span class="q-value">{{ queueStatus.patientsAhead }}</span>
+                <span class="q-label">Ahead of you</span>
+              </div>
+              <div class="q-divider"></div>
+              <div class="q-stat">
+                <span class="q-value">~{{ queueStatus.estimatedWaitMinutes }}m</span>
+                <span class="q-label">Est. wait</span>
+              </div>
+            </div>
+            @if (queueStatus.currentlyServingToken) {
+              <p class="serving-note">
+                <ion-icon name="hourglass-outline"></ion-icon>
+                Currently serving token #{{ queueStatus.currentlyServingToken }}
+              </p>
+            }
+          }
+          <p class="queue-message">{{ queueStatus.message }}</p>
+          <p class="refresh-note">
+            <ion-icon name="refresh-outline"></ion-icon>
+            Auto-updates every 30 seconds
+          </p>
+        </ion-card-content>
+      </ion-card>
+    }
+
+    <!-- ===== Not Yet Checked In Banner ===== -->
+    @if (appointment.status === 'SCHEDULED' || appointment.status === 'CONFIRMED') {
+      <div class="checkin-banner">
+        <ion-icon name="person-outline" color="primary"></ion-icon>
+        <p>{{ queueStatus?.message ?? 'Please check in at reception when you arrive.' }}</p>
+      </div>
+    }
+
+    <!-- ===== Status Timeline ===== -->
+    <ion-card class="timeline-card">
+      <ion-card-header>
+        <ion-card-title>Progress</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="timeline">
+          @for (step of statusTimeline; track step; let i = $index) {
+            <div class="timeline-step" [class.reached]="isStatusReached(step)">
+              <div class="step-dot">
+                @if (isStatusReached(step)) {
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                }
+              </div>
+              <span class="step-label">{{ getStatusConfig(step).label }}</span>
+            </div>
+            @if (i < statusTimeline.length - 1) {
+              <div class="step-connector" [class.reached]="isStatusReached(statusTimeline[i + 1])"></div>
+            }
+          }
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- ===== Visit Details ===== -->
+    @if (appointment.reasonForVisit || appointment.symptoms) {
+      <ion-card class="info-card">
+        <ion-card-header>
+          <ion-card-title>Visit Details</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          @if (appointment.reasonForVisit) {
+            <div class="detail-group">
+              <p class="detail-label">Reason for Visit</p>
+              <p class="detail-value">{{ appointment.reasonForVisit }}</p>
+            </div>
+          }
+          @if (appointment.symptoms) {
+            <div class="detail-group">
+              <p class="detail-label">Symptoms</p>
+              <p class="detail-value">{{ appointment.symptoms }}</p>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+    }
+
+    <!-- ===== Consultation Times (post-visit) ===== -->
+    @if (appointment.checkedInAt || appointment.consultationStartedAt || appointment.consultationEndedAt) {
+      <ion-card class="info-card">
+        <ion-card-header>
+          <ion-card-title>Timeline</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          @if (appointment.checkedInAt) {
+            <div class="meta-row">
+              <span>Checked In</span>
+              <strong>{{ appointment.checkedInAt | slice:11:16 }}</strong>
+            </div>
+          }
+          @if (appointment.consultationStartedAt) {
+            <div class="meta-row">
+              <span>Consultation Started</span>
+              <strong>{{ appointment.consultationStartedAt | slice:11:16 }}</strong>
+            </div>
+          }
+          @if (appointment.consultationEndedAt) {
+            <div class="meta-row">
+              <span>Consultation Ended</span>
+              <strong>{{ appointment.consultationEndedAt | slice:11:16 }}</strong>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+    }
+
+    <!-- ===== Patient Actions ===== -->
+    @if (canCheckIn || canCancel) {
+      <div class="action-section">
+        @if (canCheckIn) {
+          <ion-button expand="block" color="success" (click)="checkIn()" [disabled]="actionInProgress">
+            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+            Check In Now
+          </ion-button>
+        }
+        @if (canCancel) {
+          <ion-button expand="block" fill="outline" color="danger"
+                      (click)="presentCancelAlert()" [disabled]="actionInProgress">
+            <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+            Cancel Appointment
+          </ion-button>
+        }
+      </div>
+    }
+
+    <div style="height: 32px;"></div>
+  }
+
+</ion-content>

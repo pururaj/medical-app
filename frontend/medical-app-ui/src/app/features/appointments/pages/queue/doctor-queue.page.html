@@ -1,0 +1,113 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Today's Queue</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadQueue($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Stats Bar -->
+  <ion-grid class="stats-grid">
+    <ion-row>
+      <ion-col>
+        <div class="stat-box stat-total">
+          <span class="stat-value">{{ totalCount }}</span>
+          <span class="stat-label">Total</span>
+        </div>
+      </ion-col>
+      <ion-col>
+        <div class="stat-box stat-checkedin">
+          <span class="stat-value">{{ checkedInCount }}</span>
+          <span class="stat-label">Checked In</span>
+        </div>
+      </ion-col>
+      <ion-col>
+        <div class="stat-box stat-inprogress">
+          <span class="stat-value">{{ inProgressCount }}</span>
+          <span class="stat-label">In Progress</span>
+        </div>
+      </ion-col>
+      <ion-col>
+        <div class="stat-box stat-done">
+          <span class="stat-value">{{ completedCount }}</span>
+          <span class="stat-label">Done</span>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Loading queue…</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading && queue.length === 0) {
+    <div class="empty-state">
+      <ion-icon name="calendar-outline" class="empty-icon"></ion-icon>
+      <h3>No appointments today</h3>
+      <p>The queue is clear for today.</p>
+    </div>
+  }
+
+  <!-- Queue List -->
+  @if (!loading && queue.length > 0) {
+    <div class="queue-list">
+      @for (appt of queue; track appt.id) {
+        <ion-card class="queue-card" [class.card-in-progress]="appt.status === 'IN_PROGRESS'">
+          <ion-card-content>
+            <div class="card-row">
+
+              <!-- Token -->
+              <div class="token-col"
+                   [style.background]="appt.status === 'IN_PROGRESS' ? 'var(--ion-color-tertiary)' : appt.status === 'CHECKED_IN' ? 'var(--ion-color-warning)' : 'var(--ion-color-primary)'">
+                <span class="token-num">#{{ appt.tokenNumber }}</span>
+              </div>
+
+              <!-- Patient Info -->
+              <div class="patient-col">
+                <p class="patient-name">{{ appt.patientName }}</p>
+                <p class="appt-meta">{{ formatTime(appt.appointmentTime) }} · {{ appt.type }}</p>
+                @if (appt.reasonForVisit) {
+                  <p class="reason-text">{{ appt.reasonForVisit }}</p>
+                }
+                <ion-chip [color]="getStatusConfig(appt.status).color" class="status-chip">
+                  <ion-label>{{ getStatusConfig(appt.status).label }}</ion-label>
+                </ion-chip>
+              </div>
+
+              <!-- Action -->
+              <div class="action-col">
+                @if (isActionable(appt.status)) {
+                  <ion-button
+                    size="small"
+                    [color]="getActionColor(appt.status)"
+                    [disabled]="actionInProgress === appt.id"
+                    (click)="onAction(appt)">
+                    @if (actionInProgress === appt.id) {
+                      <ion-spinner name="crescent" slot="icon-only"></ion-spinner>
+                    } @else {
+                      {{ getActionLabel(appt.status) }}
+                    }
+                  </ion-button>
+                }
+              </div>
+
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  <div style="height: 32px;"></div>
+</ion-content>

@@ -56,6 +56,17 @@ export interface AppointmentBookingRequest {
   symptoms?: string;
 }
 
+export interface QueueStatusDto {
+  appointmentId: number;
+  tokenNumber: number;
+  status: string;
+  positionInQueue: number;   // -1 = not checked in; 0 = in-progress or terminal; 1+ = in active queue
+  patientsAhead: number;
+  currentlyServingToken: number | null;
+  estimatedWaitMinutes: number;
+  message: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -124,5 +135,9 @@ export class AppointmentService {
 
   deleteAppointment(id: number): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
+  }
+
+  getQueueStatus(id: number): Observable<ApiResponse<QueueStatusDto>> {
+    return this.http.get<ApiResponse<QueueStatusDto>>(`${this.baseUrl}/${id}/queue-status`);
   }
 }

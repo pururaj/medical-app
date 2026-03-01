@@ -132,6 +132,10 @@ export class AppointmentsListPage implements OnInit {
     this.router.navigate(['/appointments/book']);
   }
 
+  openDetail(appt: AppointmentDto) {
+    this.router.navigate(['/appointments', appt.id]);
+  }
+
   getStatusConfig(status: string) {
     return STATUS_CONFIG[status] ?? { color: 'medium', label: status, icon: 'calendar-outline' };
   }

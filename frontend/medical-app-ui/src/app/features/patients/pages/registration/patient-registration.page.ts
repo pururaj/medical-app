@@ -144,11 +144,15 @@ export class PatientRegistrationPage implements OnInit {
     const loading = await this.loadingCtrl.create({ message: 'Registering patient…' });
     await loading.present();
 
-    const payload: PatientDto = {
+    const raw = {
       ...this.personalForm.value,
       ...this.medicalForm.value,
       ...this.emergencyForm.value
     };
+    // Convert empty strings to undefined so backend @Pattern validators don't reject optional fields
+    const payload: PatientDto = Object.fromEntries(
+      Object.entries(raw).map(([k, v]) => [k, v === '' ? undefined : v])
+    ) as unknown as PatientDto;
 
     this.patientService.createPatient(payload).subscribe({
       next: async (res) => {

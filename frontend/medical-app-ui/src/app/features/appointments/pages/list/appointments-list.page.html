@@ -50,7 +50,7 @@
   @if (!loading && filteredAppointments.length > 0) {
     <div class="appointments-list">
       @for (appt of filteredAppointments; track appt.id) {
-        <ion-card class="appointment-card">
+        <ion-card class="appointment-card" (click)="openDetail(appt)" style="cursor:pointer">
           <ion-card-content>
             <div class="card-header">
               <div class="doctor-info">

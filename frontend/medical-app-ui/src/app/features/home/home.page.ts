@@ -11,7 +11,11 @@ import {
   IonRow,
   IonCol,
   IonIcon,
-  IonText
+  IonText,
+  IonButton,
+  IonButtons,
+  IonChip,
+  IonLabel
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -20,8 +24,13 @@ import {
   medkitOutline,
   receiptOutline,
   statsChartOutline,
-  personCircleOutline
+  personCircleOutline,
+  logOutOutline,
+  listOutline,
+  medicalOutline,
+  peopleCircleOutline
 } from 'ionicons/icons';
+import { AuthService } from '../../core/services/auth.service';
 
 interface QuickAction {
   label: string;
@@ -30,6 +39,45 @@ interface QuickAction {
   color: string;
   description: string;
 }
+
+const ALL_QUICK_ACTIONS: Record<string, QuickAction[]> = {
+  ADMIN: [
+    { label: 'Book Appointment', icon: 'calendar-outline',       route: '/appointments/book',  color: '#3880ff', description: 'Schedule a doctor visit' },
+    { label: 'My Appointments',  icon: 'receipt-outline',        route: '/appointments',       color: '#2dd36f', description: 'View all appointments' },
+    { label: 'Patients',         icon: 'people-outline',         route: '/patients',           color: '#ffc409', description: 'Manage patient records' },
+    { label: 'Doctor Queue',     icon: 'list-outline',           route: '/appointments/queue', color: '#eb445a', description: "Today's queue dashboard" },
+    { label: 'Doctors',          icon: 'medical-outline',        route: '/doctors',            color: '#92949c', description: 'View doctor profiles' },
+    { label: 'Staff',            icon: 'people-circle-outline',  route: '/staff',              color: '#5260ff', description: 'Manage medical staff' },
+  ],
+  DOCTOR: [
+    { label: 'My Appointments', icon: 'receipt-outline', route: '/appointments',       color: '#2dd36f', description: "View today's appointments" },
+    { label: 'Doctor Queue',    icon: 'list-outline',     route: '/appointments/queue', color: '#3880ff', description: 'Manage patient queue' },
+    { label: 'Patients',        icon: 'people-outline',   route: '/patients/1',         color: '#ffc409', description: 'View patient records' },
+    { label: 'Doctors',         icon: 'medical-outline',  route: '/doctors',            color: '#92949c', description: 'View doctor profiles' },
+  ],
+  RECEPTIONIST: [
+    { label: 'Book Appointment', icon: 'calendar-outline', route: '/appointments/book',  color: '#3880ff', description: 'Schedule a doctor visit' },
+    { label: 'Appointments',     icon: 'receipt-outline',  route: '/appointments',       color: '#2dd36f', description: 'View all appointments' },
+    { label: 'Patients',         icon: 'people-outline',   route: '/patients',           color: '#ffc409', description: 'Manage patient records' },
+    { label: 'Doctor Queue',     icon: 'list-outline',     route: '/appointments/queue', color: '#eb445a', description: "Today's queue dashboard" },
+  ],
+  PHARMACIST: [
+    { label: 'Patients', icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
+    { label: 'Doctors',  icon: 'medical-outline', route: '/doctors',    color: '#92949c', description: 'View doctor profiles' },
+  ],
+  LAB_TECH: [
+    { label: 'Patients', icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
+    { label: 'Doctors',  icon: 'medical-outline', route: '/doctors',    color: '#92949c', description: 'View doctor profiles' },
+  ],
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Admin',
+  DOCTOR: 'Doctor',
+  RECEPTIONIST: 'Receptionist',
+  PHARMACIST: 'Pharmacist',
+  LAB_TECH: 'Lab Technician',
+};
 
 @Component({
   selector: 'app-home',
@@ -47,7 +95,11 @@ interface QuickAction {
     IonRow,
     IonCol,
     IonIcon,
-    IonText
+    IonText,
+    IonButton,
+    IonButtons,
+    IonChip,
+    IonLabel,
   ]
 })
 export class HomePage {
@@ -55,49 +107,34 @@ export class HomePage {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
-  quickActions: QuickAction[] = [
-    {
-      label: 'Book Appointment',
-      icon: 'calendar-outline',
-      route: '/appointments/book',
-      color: '#3880ff',
-      description: 'Schedule a doctor visit'
-    },
-    {
-      label: 'My Appointments',
-      icon: 'receipt-outline',
-      route: '/appointments',
-      color: '#2dd36f',
-      description: 'View all appointments'
-    },
-    {
-      label: 'Patients',
-      icon: 'people-outline',
-      route: '/patients',
-      color: '#ffc409',
-      description: 'Manage patient records'
-    },
-    {
-      label: 'My Profile',
-      icon: 'person-circle-outline',
-      route: '/patients/1',
-      color: '#eb445a',
-      description: 'View health records'
-    }
-  ];
-
-  constructor(private router: Router) {
+  constructor(private router: Router, public authService: AuthService) {
     addIcons({
       calendarOutline,
       peopleOutline,
       medkitOutline,
       receiptOutline,
       statsChartOutline,
-      personCircleOutline
+      personCircleOutline,
+      logOutOutline,
+      listOutline,
+      medicalOutline,
+      peopleCircleOutline,
     });
+  }
+
+  get quickActions(): QuickAction[] {
+    return ALL_QUICK_ACTIONS[this.authService.getRole()] ?? [];
+  }
+
+  get roleLabel(): string {
+    return ROLE_LABELS[this.authService.getRole()] ?? this.authService.getRole();
   }
 
   navigate(route: string) {
     this.router.navigate([route]);
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }
