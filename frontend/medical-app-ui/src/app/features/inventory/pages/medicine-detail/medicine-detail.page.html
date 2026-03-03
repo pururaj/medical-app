@@ -1,0 +1,151 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Medicine Details</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="editMedicine()" fill="clear">
+        <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="center-content">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading && medicine">
+    <!-- Medicine Header -->
+    <div class="medicine-header">
+      <div class="category-badge" [attr.data-category]="medicine.category">
+        {{ medicine.category[0] }}
+      </div>
+      <div class="medicine-title">
+        <h1>{{ medicine.name }}</h1>
+        <p *ngIf="medicine.genericName">{{ medicine.genericName }}</p>
+        <div class="header-chips">
+          <ion-chip [color]="getCategoryColor(medicine.category)">{{ medicine.category }}</ion-chip>
+          <ion-chip [color]="getStockStatus().color">{{ getStockStatus().label }}</ion-chip>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Summary Card -->
+    <ion-card class="stock-summary-card">
+      <ion-card-content>
+        <div class="stock-grid">
+          <div class="stock-stat">
+            <div class="stat-value" [class.low]="medicine && totalStock < medicine.reorderLevel">{{ totalStock }}</div>
+            <div class="stat-label">Total Stock</div>
+          </div>
+          <div class="stock-stat">
+            <div class="stat-value">{{ medicine.reorderLevel }}</div>
+            <div class="stat-label">Reorder Level</div>
+          </div>
+          <div class="stock-stat">
+            <div class="stat-value">{{ medicine.unit }}</div>
+            <div class="stat-label">Unit</div>
+          </div>
+          <div class="stock-stat">
+            <div class="stat-value">₹{{ medicine.unitPrice | number:'1.2-2' }}</div>
+            <div class="stat-label">Unit Price</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Action Buttons -->
+    <div class="action-row">
+      <ion-button expand="block" (click)="adjustStock()" color="success">
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Adjust Stock
+      </ion-button>
+      <ion-button expand="block" fill="outline" color="danger" (click)="confirmDelete()">
+        <ion-icon slot="start" name="trash-outline"></ion-icon>
+        Deactivate
+      </ion-button>
+    </div>
+
+    <!-- Medicine Info -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Details</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list lines="none">
+          <ion-item *ngIf="medicine.manufacturer">
+            <ion-label>
+              <p class="detail-label">Manufacturer</p>
+              <h3>{{ medicine.manufacturer }}</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item *ngIf="medicine.description">
+            <ion-label>
+              <p class="detail-label">Description</p>
+              <h3 class="description">{{ medicine.description }}</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-label>
+              <p class="detail-label">Status</p>
+              <h3>
+                <ion-chip [color]="medicine.active ? 'success' : 'medium'" style="margin: 0">
+                  {{ medicine.active ? 'Active' : 'Inactive' }}
+                </ion-chip>
+              </h3>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Stock Batches -->
+    <ion-card *ngIf="stocks.length > 0">
+      <ion-card-header>
+        <ion-card-title>Stock Batches</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="batch-item" *ngFor="let stock of stocks">
+          <div class="batch-info">
+            <div class="batch-number">{{ stock.batchNumber || 'No Batch' }}</div>
+            <div class="batch-meta">
+              <span *ngIf="stock.supplier">{{ stock.supplier }}</span>
+              <span *ngIf="stock.location"> · {{ stock.location }}</span>
+            </div>
+            <div *ngIf="stock.expiryDate" class="batch-expiry" [class.expiring]="isExpiringSoon(stock.expiryDate)">
+              Expires: {{ stock.expiryDate | date:'mediumDate' }}
+            </div>
+          </div>
+          <div class="batch-qty">{{ stock.currentQuantity }}</div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Transaction History -->
+    <ion-card *ngIf="transactions.length > 0">
+      <ion-card-header>
+        <ion-card-title>Recent Transactions</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="transaction-item" *ngFor="let tx of transactions">
+          <div class="tx-icon" [attr.data-type]="tx.transactionType">
+            <ion-icon [name]="getTransactionIcon(tx.transactionType)" [color]="getTransactionColor(tx.transactionType)"></ion-icon>
+          </div>
+          <div class="tx-info">
+            <div class="tx-type">{{ tx.transactionType }}</div>
+            <div class="tx-date">{{ tx.createdAt | date:'short' }}</div>
+            <div class="tx-notes" *ngIf="tx.notes">{{ tx.notes }}</div>
+          </div>
+          <div class="tx-qty" [class.positive]="tx.transactionType === 'PURCHASE' || tx.transactionType === 'RETURNED'">
+            {{ (tx.transactionType === 'PURCHASE' || tx.transactionType === 'RETURNED') ? '+' : '-' }}{{ tx.quantity }}
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="bottom-spacer"></div>
+  </ng-container>
+</ion-content>

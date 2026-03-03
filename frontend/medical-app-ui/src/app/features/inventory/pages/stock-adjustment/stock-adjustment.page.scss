@@ -1,0 +1,68 @@
+.form-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 16px 16px 4px;
+}
+
+.selected-medicine-card {
+  margin: 8px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  border-left: 4px solid var(--ion-color-success);
+}
+
+.selected-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.med-name { font-weight: 600; font-size: 15px; }
+.med-generic { font-size: 12px; color: var(--ion-color-medium); }
+
+.current-stock-badge {
+  text-align: center;
+  background: var(--ion-color-light);
+  border-radius: 10px;
+  padding: 8px 14px;
+
+  .cs-label { font-size: 10px; color: var(--ion-color-medium); }
+  .cs-value { font-size: 22px; font-weight: 700; color: var(--ion-color-primary); }
+}
+
+.select-btn {
+  margin: 8px 12px;
+}
+
+.search-panel {
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  margin: 0 12px 8px;
+  overflow: hidden;
+}
+
+.medicine-results {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--ion-color-medium);
+}
+
+.required { color: var(--ion-color-danger); }
+
+.submit-area {
+  padding: 24px 16px;
+
+  ion-button {
+    --border-radius: 12px;
+    height: 48px;
+    font-weight: 600;
+  }
+}

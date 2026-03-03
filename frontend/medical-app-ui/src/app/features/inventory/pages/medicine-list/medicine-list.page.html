@@ -1,0 +1,117 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Inventory</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="manageStock()">
+        <ion-icon slot="icon-only" name="layers-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadData($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid" *ngIf="summary">
+    <ion-card class="summary-card">
+      <ion-card-content>
+        <div class="summary-number">{{ summary.totalMedicines }}</div>
+        <div class="summary-label">Total Medicines</div>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="summary-card warning">
+      <ion-card-content>
+        <div class="summary-number">{{ summary.lowStockCount }}</div>
+        <div class="summary-label">Low Stock</div>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="summary-card danger">
+      <ion-card-content>
+        <div class="summary-number">{{ summary.expiringSoonCount }}</div>
+        <div class="summary-label">Expiring Soon</div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Search & Filter -->
+  <ion-searchbar
+    placeholder="Search medicines..."
+    [debounce]="300"
+    (ionInput)="onSearch($event)"
+    animated>
+  </ion-searchbar>
+
+  <div class="filter-bar">
+    <ion-select
+      placeholder="All Categories"
+      interface="action-sheet"
+      [value]="selectedCategory"
+      (ionChange)="onCategoryChange($event)">
+      <ion-select-option value="">All Categories</ion-select-option>
+      <ion-select-option *ngFor="let cat of categories" [value]="cat">
+        {{ cat }}
+      </ion-select-option>
+    </ion-select>
+  </div>
+
+  <!-- Loading -->
+  <div class="center-content" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <!-- Empty State -->
+  <div class="center-content" *ngIf="!loading && medicines.length === 0">
+    <ion-icon name="medkit-outline" class="empty-icon"></ion-icon>
+    <ion-text color="medium"><p>No medicines found</p></ion-text>
+    <ion-button fill="outline" (click)="addMedicine()">Add Medicine</ion-button>
+  </div>
+
+  <!-- Medicine List -->
+  <ion-item-sliding *ngFor="let medicine of medicines" #slidingItem>
+    <ion-item button detail="false" (click)="viewMedicine(medicine)" lines="none" class="medicine-item">
+      <div slot="start" class="category-avatar" [attr.data-category]="medicine.category">
+        {{ medicine.category[0] }}
+      </div>
+      <ion-label>
+        <h2>{{ medicine.name }}</h2>
+        <p *ngIf="medicine.genericName" class="generic-name">{{ medicine.genericName }}</p>
+        <div class="medicine-meta">
+          <ion-chip [color]="getCategoryColor(medicine.category)" class="small-chip">
+            {{ medicine.category }}
+          </ion-chip>
+          <ion-chip [color]="getStockStatus(medicine).color" class="small-chip stock-chip">
+            <ion-icon
+              [name]="medicine.totalStock === 0 ? 'alert-circle-outline' : medicine.totalStock < medicine.reorderLevel ? 'warning-outline' : 'cube-outline'"
+              slot="start">
+            </ion-icon>
+            {{ medicine.totalStock }} {{ medicine.unit }}
+          </ion-chip>
+        </div>
+      </ion-label>
+      <div slot="end" class="price-tag">
+        <span *ngIf="medicine.unitPrice">₹{{ medicine.unitPrice | number:'1.2-2' }}</span>
+      </div>
+    </ion-item>
+
+    <ion-item-options side="end">
+      <ion-item-option color="primary" (click)="editMedicine(medicine, slidingItem)">
+        <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+      </ion-item-option>
+      <ion-item-option color="danger" (click)="confirmDelete(medicine, slidingItem)">
+        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+      </ion-item-option>
+    </ion-item-options>
+  </ion-item-sliding>
+
+  <div class="bottom-spacer"></div>
+
+  <!-- FAB -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="addMedicine()" color="primary">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

@@ -1,0 +1,96 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Stock Management</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [value]="activeSegment" (ionChange)="onSegmentChange($event)">
+      <ion-segment-button value="all">
+        <ion-label>All Stock</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="low">
+        <ion-label>
+          Low Stock
+          <ion-badge color="danger" *ngIf="lowStockMedicines.length > 0">{{ lowStockMedicines.length }}</ion-badge>
+        </ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadData($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading" class="center-content">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <!-- All Stock Tab -->
+  <ng-container *ngIf="!loading && activeSegment === 'all'">
+    <div *ngIf="allStock.length === 0" class="center-content">
+      <ion-icon name="cube-outline" class="empty-icon"></ion-icon>
+      <p>No stock records</p>
+    </div>
+
+    <ion-card *ngFor="let stock of allStock" class="stock-card" (click)="viewMedicine(stock.medicineId)">
+      <ion-card-content>
+        <div class="stock-row">
+          <div class="stock-info">
+            <div class="medicine-name">{{ stock.medicineName }}</div>
+            <div class="batch-detail">
+              <span *ngIf="stock.batchNumber">Batch: {{ stock.batchNumber }}</span>
+              <span *ngIf="stock.supplier"> · {{ stock.supplier }}</span>
+            </div>
+            <div *ngIf="stock.expiryDate" class="expiry-info" [class.expiring]="isExpiringSoon(stock.expiryDate)">
+              <ion-icon name="time-outline"></ion-icon>
+              Expires: {{ stock.expiryDate | date:'mediumDate' }}
+            </div>
+          </div>
+          <div class="qty-box">
+            <div class="qty-value">{{ stock.currentQuantity }}</div>
+            <div class="qty-label">units</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <!-- Low Stock Tab -->
+  <ng-container *ngIf="!loading && activeSegment === 'low'">
+    <div *ngIf="lowStockMedicines.length === 0" class="center-content success-message">
+      <ion-icon name="cube-outline" class="empty-icon" color="success"></ion-icon>
+      <p style="color: var(--ion-color-success)">All medicines are well stocked!</p>
+    </div>
+
+    <ion-card *ngFor="let med of lowStockMedicines" class="low-stock-card" (click)="viewMedicine(med.id)">
+      <ion-card-content>
+        <div class="stock-row">
+          <div class="stock-info">
+            <div class="medicine-name">{{ med.name }}</div>
+            <ion-chip [color]="getCategoryColor(med.category)" class="small-chip">{{ med.category }}</ion-chip>
+            <div class="reorder-info">
+              Reorder at: {{ med.reorderLevel }} {{ med.unit }}
+            </div>
+          </div>
+          <div class="qty-box low">
+            <ion-icon name="warning-outline" color="warning"></ion-icon>
+            <div class="qty-value low">{{ med.totalStock }}</div>
+            <div class="qty-label">left</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <div class="bottom-spacer"></div>
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="adjustStock()" color="success">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

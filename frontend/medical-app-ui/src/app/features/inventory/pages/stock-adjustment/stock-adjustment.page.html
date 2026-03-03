@@ -1,0 +1,131 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/stock"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Adjust Stock</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+
+    <!-- Medicine Selector -->
+    <div class="form-section-title">Select Medicine</div>
+
+    <ion-card *ngIf="selectedMedicine" class="selected-medicine-card" (click)="showMedicineSearch = true">
+      <ion-card-content>
+        <div class="selected-row">
+          <div>
+            <div class="med-name">{{ selectedMedicine.name }}</div>
+            <div class="med-generic" *ngIf="selectedMedicine.genericName">{{ selectedMedicine.genericName }}</div>
+          </div>
+          <div class="current-stock-badge">
+            <div class="cs-label">Current Stock</div>
+            <div class="cs-value">{{ currentStock }}</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button
+      *ngIf="!selectedMedicine"
+      expand="block"
+      fill="outline"
+      class="select-btn"
+      (click)="showMedicineSearch = !showMedicineSearch">
+      <ion-icon slot="start" name="search-outline"></ion-icon>
+      Search & Select Medicine
+    </ion-button>
+
+    <!-- Search Panel -->
+    <div class="search-panel" *ngIf="showMedicineSearch">
+      <ion-searchbar
+        placeholder="Search medicines..."
+        [debounce]="200"
+        (ionInput)="onMedicineSearch($event)"
+        animated>
+      </ion-searchbar>
+      <div class="medicine-results">
+        <ion-item
+          *ngFor="let med of filteredMedicines | slice:0:10"
+          button
+          (click)="selectMedicine(med)"
+          lines="full">
+          <ion-label>
+            <h3>{{ med.name }}</h3>
+            <p>{{ med.category }} · Stock: {{ med.totalStock }}</p>
+          </ion-label>
+        </ion-item>
+        <div *ngIf="filteredMedicines.length === 0" class="no-results">No medicines found</div>
+      </div>
+    </div>
+
+    <div class="form-section-title">Transaction Details</div>
+
+    <ion-item [class.ion-invalid]="isFieldInvalid('transactionType')">
+      <ion-label position="stacked">Transaction Type <span class="required">*</span></ion-label>
+      <ion-select
+        formControlName="transactionType"
+        interface="action-sheet"
+        placeholder="Select type"
+        (ionChange)="onTypeChange($event)">
+        <ion-select-option *ngFor="let t of transactionTypes" [value]="t.value">{{ t.label }}</ion-select-option>
+      </ion-select>
+      <ion-note slot="error">Transaction type is required</ion-note>
+    </ion-item>
+
+    <ion-item [class.ion-invalid]="isFieldInvalid('quantity')">
+      <ion-label position="stacked">Quantity <span class="required">*</span></ion-label>
+      <ion-input
+        formControlName="quantity"
+        type="number"
+        inputmode="numeric"
+        placeholder="Enter quantity"
+        min="1">
+      </ion-input>
+      <ion-note slot="error">Quantity must be at least 1</ion-note>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Notes</ion-label>
+      <ion-textarea
+        formControlName="notes"
+        placeholder="Optional notes..."
+        [rows]="2"
+        autoGrow>
+      </ion-textarea>
+    </ion-item>
+
+    <!-- Extra fields for PURCHASE -->
+    <ng-container *ngIf="isAddType()">
+      <div class="form-section-title">Batch Details (Optional)</div>
+
+      <ion-item>
+        <ion-label position="stacked">Batch Number</ion-label>
+        <ion-input formControlName="batchNumber" placeholder="e.g. BATCH-2024-001" clearInput></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Supplier</ion-label>
+        <ion-input formControlName="supplier" placeholder="Supplier name" clearInput></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Location</ion-label>
+        <ion-input formControlName="location" placeholder="e.g. Shelf A-1" clearInput></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Expiry Date</ion-label>
+        <ion-input formControlName="expiryDate" type="date" placeholder="YYYY-MM-DD"></ion-input>
+      </ion-item>
+    </ng-container>
+
+    <div class="submit-area">
+      <ion-button expand="block" type="submit" [disabled]="submitting">
+        Confirm Adjustment
+      </ion-button>
+    </div>
+  </form>
+</ion-content>

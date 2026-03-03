@@ -48,6 +48,7 @@ const ALL_QUICK_ACTIONS: Record<string, QuickAction[]> = {
     { label: 'Doctor Queue',     icon: 'list-outline',           route: '/appointments/queue', color: '#eb445a', description: "Today's queue dashboard" },
     { label: 'Doctors',          icon: 'medical-outline',        route: '/doctors',            color: '#92949c', description: 'View doctor profiles' },
     { label: 'Staff',            icon: 'people-circle-outline',  route: '/staff',              color: '#5260ff', description: 'Manage medical staff' },
+    { label: 'Inventory',        icon: 'medkit-outline',         route: '/inventory',          color: '#eb445a', description: 'Medicines & stock' },
   ],
   DOCTOR: [
     { label: 'My Appointments', icon: 'receipt-outline', route: '/appointments',       color: '#2dd36f', description: "View today's appointments" },
@@ -62,8 +63,9 @@ const ALL_QUICK_ACTIONS: Record<string, QuickAction[]> = {
     { label: 'Doctor Queue',     icon: 'list-outline',     route: '/appointments/queue', color: '#eb445a', description: "Today's queue dashboard" },
   ],
   PHARMACIST: [
-    { label: 'Patients', icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
-    { label: 'Doctors',  icon: 'medical-outline', route: '/doctors',    color: '#92949c', description: 'View doctor profiles' },
+    { label: 'Patients',   icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
+    { label: 'Doctors',    icon: 'medical-outline', route: '/doctors',    color: '#92949c', description: 'View doctor profiles' },
+    { label: 'Inventory',  icon: 'medkit-outline',  route: '/inventory',  color: '#eb445a', description: 'Medicines & stock' },
   ],
   LAB_TECH: [
     { label: 'Patients', icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },

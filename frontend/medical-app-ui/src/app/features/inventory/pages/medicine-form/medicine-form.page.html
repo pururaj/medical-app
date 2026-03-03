@@ -1,0 +1,98 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ pageTitle }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()" fill="clear">
+        Cancel
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+
+    <div class="form-section-title">Basic Information</div>
+
+    <ion-item [class.ion-invalid]="isFieldInvalid('name')">
+      <ion-label position="stacked">Medicine Name <span class="required">*</span></ion-label>
+      <ion-input formControlName="name" placeholder="e.g. Paracetamol 500mg" clearInput></ion-input>
+      <ion-note slot="error">Medicine name is required</ion-note>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Generic Name</ion-label>
+      <ion-input formControlName="genericName" placeholder="e.g. Acetaminophen" clearInput></ion-input>
+    </ion-item>
+
+    <ion-item [class.ion-invalid]="isFieldInvalid('category')">
+      <ion-label position="stacked">Category <span class="required">*</span></ion-label>
+      <ion-select
+        formControlName="category"
+        interface="action-sheet"
+        placeholder="Select category"
+        (ionChange)="onSelectChange('category', $event)">
+        <ion-select-option *ngFor="let cat of categories" [value]="cat">{{ cat }}</ion-select-option>
+      </ion-select>
+      <ion-note slot="error">Category is required</ion-note>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Manufacturer</ion-label>
+      <ion-input formControlName="manufacturer" placeholder="e.g. Generic Pharma" clearInput></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Description</ion-label>
+      <ion-textarea formControlName="description" placeholder="Optional description..." [rows]="3" autoGrow></ion-textarea>
+    </ion-item>
+
+    <div class="form-section-title">Pricing & Stock</div>
+
+    <ion-item [class.ion-invalid]="isFieldInvalid('unit')">
+      <ion-label position="stacked">Unit <span class="required">*</span></ion-label>
+      <ion-select
+        formControlName="unit"
+        interface="action-sheet"
+        placeholder="Select unit"
+        (ionChange)="onSelectChange('unit', $event)">
+        <ion-select-option *ngFor="let u of units" [value]="u">{{ u }}</ion-select-option>
+      </ion-select>
+      <ion-note slot="error">Unit is required</ion-note>
+    </ion-item>
+
+    <ion-item [class.ion-invalid]="isFieldInvalid('unitPrice')">
+      <ion-label position="stacked">Unit Price (₹) <span class="required">*</span></ion-label>
+      <ion-input
+        formControlName="unitPrice"
+        type="number"
+        inputmode="decimal"
+        placeholder="0.00"
+        min="0">
+      </ion-input>
+      <ion-note slot="error">Valid unit price is required</ion-note>
+    </ion-item>
+
+    <ion-item [class.ion-invalid]="isFieldInvalid('reorderLevel')">
+      <ion-label position="stacked">Reorder Level <span class="required">*</span></ion-label>
+      <ion-input
+        formControlName="reorderLevel"
+        type="number"
+        inputmode="numeric"
+        placeholder="10"
+        min="0">
+      </ion-input>
+      <ion-note slot="error">Reorder level is required</ion-note>
+    </ion-item>
+
+    <div class="submit-area">
+      <ion-button expand="block" type="submit" [disabled]="submitting">
+        {{ isEditMode ? 'Save Changes' : 'Add Medicine' }}
+      </ion-button>
+    </div>
+
+  </form>
+</ion-content>
