@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,11 +30,22 @@ public class SaleService {
     @Transactional(readOnly = true)
     public PageResponse<SaleDto> getSales(int page, int size, String status, String startDate, String endDate) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Sale.SaleStatus saleStatus = status != null ? Sale.SaleStatus.valueOf(status) : null;
-        LocalDateTime start = startDate != null ? LocalDateTime.parse(startDate + "T00:00:00") : null;
-        LocalDateTime end   = endDate   != null ? LocalDateTime.parse(endDate   + "T23:59:59") : null;
 
-        Page<Sale> result = saleRepo.findByFilters(saleStatus, start, end, pageable);
+        Specification<Sale> spec = Specification.where(null);
+        if (status != null) {
+            Sale.SaleStatus saleStatus = Sale.SaleStatus.valueOf(status);
+            spec = spec.and((root, q, cb) -> cb.equal(root.get("status"), saleStatus));
+        }
+        if (startDate != null) {
+            LocalDateTime start = LocalDateTime.parse(startDate + "T00:00:00");
+            spec = spec.and((root, q, cb) -> cb.greaterThanOrEqualTo(root.get("createdAt"), start));
+        }
+        if (endDate != null) {
+            LocalDateTime end = LocalDateTime.parse(endDate + "T23:59:59");
+            spec = spec.and((root, q, cb) -> cb.lessThanOrEqualTo(root.get("createdAt"), end));
+        }
+
+        Page<Sale> result = saleRepo.findAll(spec, pageable);
         return PageResponse.<SaleDto>builder()
                 .content(result.getContent().stream().map(this::toDto).toList())
                 .pageNumber(result.getNumber())
