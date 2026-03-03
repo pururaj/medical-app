@@ -135,6 +135,25 @@ services:
       timeout: 5s
       retries: 5
 
+  pharmacy-db:
+    image: postgres:16-alpine
+    container_name: pharmacy-db
+    environment:
+      POSTGRES_DB: pharmacy_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5439:5432"
+    volumes:
+      - pharmacy-db-data:/var/lib/postgresql/data
+    networks:
+      - medical-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # RabbitMQ for async messaging
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -198,6 +217,7 @@ volumes:
   billing-db-data:
   auth-db-data:
   inventory-db-data:
+  pharmacy-db-data:
   rabbitmq-data:
   redis-data:
   pgadmin-data:

@@ -1,0 +1,74 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/pharmacy/returns"></ion-back-button></ion-buttons>
+    <ion-title>Process Return</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="loading-center"><ion-spinner name="crescent"></ion-spinner></div>
+
+  <ng-container *ngIf="!loading && sale">
+    <ion-card>
+      <ion-card-content>
+        <div class="sale-ref">
+          <strong>{{ sale.saleNumber }}</strong>
+          <span>{{ sale.createdAt | date:'dd MMM yyyy' }}</span>
+        </div>
+        <p class="customer-name">{{ sale.customerName || 'Walk-in' }}</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-content>
+        <h3 class="section-title">Select items to return</h3>
+        <div *ngFor="let r of returnItems" class="return-item">
+          <ion-checkbox [(ngModel)]="r.selected"></ion-checkbox>
+          <div class="return-item-info">
+            <span class="item-name">{{ r.saleItem.medicineName }}</span>
+            <span class="item-meta">Sold: {{ r.saleItem.quantity }} · ₹{{ r.saleItem.unitPrice }} each</span>
+          </div>
+          <ion-input
+            *ngIf="r.selected"
+            type="number"
+            [(ngModel)]="r.quantity"
+            [min]="1"
+            [max]="r.saleItem.quantity"
+            class="qty-input">
+          </ion-input>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-textarea
+            [(ngModel)]="returnReason"
+            label="Return Reason"
+            labelPlacement="floating"
+            placeholder="Enter reason for return..."
+            [rows]="3">
+          </ion-textarea>
+        </ion-item>
+
+        <div class="refund-total" *ngIf="totalRefund > 0">
+          Total Refund: <strong>₹{{ totalRefund | number:'1.2-2' }}</strong>
+        </div>
+
+        <ion-button
+          expand="block"
+          color="warning"
+          [disabled]="!hasSelectedItems || submitting"
+          (click)="submitReturn()">
+          <ion-icon slot="start" name="return-down-back-outline"></ion-icon>
+          {{ submitting ? 'Processing...' : 'Submit Return' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <div *ngIf="!loading && !sale" class="empty-state">
+    <p>No sale found. Please go back and select a sale.</p>
+  </div>
+</ion-content>

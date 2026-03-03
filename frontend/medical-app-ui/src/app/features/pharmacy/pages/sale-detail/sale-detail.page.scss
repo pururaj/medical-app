@@ -1,0 +1,11 @@
+.loading-center { display: flex; justify-content: center; padding: 40px; }
+.sale-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.sale-number { font-size: 1.3rem; font-weight: 700; margin: 0; }
+.sale-date { color: var(--ion-color-medium); font-size: 0.85rem; margin: 4px 0 0; }
+.sale-meta { display: flex; flex-direction: column; gap: 6px; }
+.meta-item { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; ion-icon { color: var(--ion-color-medium); } }
+.section-title { font-weight: 700; margin: 0 0 10px; }
+.items-header { display: grid; grid-template-columns: 2fr 0.5fr 1fr 1fr; gap: 4px; font-weight: 600; font-size: 0.8rem; color: var(--ion-color-medium); padding: 4px 0; border-bottom: 2px solid var(--ion-color-light); margin-bottom: 6px; }
+.item-row { display: grid; grid-template-columns: 2fr 0.5fr 1fr 1fr; gap: 4px; padding: 6px 0; border-bottom: 1px solid var(--ion-color-light); font-size: 0.875rem; .item-name { font-weight: 600; } .item-total { font-weight: 700; } }
+.total-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.9rem; &.discount { color: var(--ion-color-success); } &.grand-total { font-weight: 700; font-size: 1.1rem; border-top: 2px solid var(--ion-color-light); margin-top: 6px; padding-top: 10px; } }
+.action-area { padding: 12px 16px; }

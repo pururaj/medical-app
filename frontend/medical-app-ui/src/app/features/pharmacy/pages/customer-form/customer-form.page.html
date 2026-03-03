@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/pharmacy/customers"></ion-back-button></ion-buttons>
+    <ion-title>{{ isEdit ? 'Edit Customer' : 'New Customer' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="form">
+    <ion-item [class.ion-invalid]="isFieldInvalid('name')">
+      <ion-input formControlName="name" label="Full Name *" labelPlacement="floating" placeholder="Enter full name"></ion-input>
+      <ion-note slot="error">Name is required</ion-note>
+    </ion-item>
+
+    <ion-item [class.ion-invalid]="isFieldInvalid('phone')">
+      <ion-input formControlName="phone" label="Phone Number *" labelPlacement="floating" type="tel" placeholder="Enter phone number"></ion-input>
+      <ion-note slot="error">Phone is required</ion-note>
+    </ion-item>
+
+    <ion-item>
+      <ion-input formControlName="email" label="Email" labelPlacement="floating" type="email" placeholder="Enter email (optional)"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input formControlName="address" label="Address" labelPlacement="floating" placeholder="Enter address (optional)"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input formControlName="patientId" label="Patient ID (optional)" labelPlacement="floating" type="number" placeholder="Link to existing patient"></ion-input>
+    </ion-item>
+
+    <div class="submit-area">
+      <ion-button expand="block" (click)="submit()" [disabled]="submitting">
+        {{ submitting ? 'Saving...' : isEdit ? 'Update Customer' : 'Add Customer' }}
+      </ion-button>
+    </div>
+  </form>
+</ion-content>

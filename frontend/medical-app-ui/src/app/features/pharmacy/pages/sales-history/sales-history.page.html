@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/pharmacy"></ion-back-button></ion-buttons>
+    <ion-title>Sales History</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="goToPOS()">
+        <ion-icon slot="icon-only" name="cart-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadData($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Summary cards -->
+  <div class="summary-grid" *ngIf="summary">
+    <ion-card class="summary-card">
+      <ion-card-content>
+        <ion-icon name="cart-outline" color="primary"></ion-icon>
+        <div class="summary-value">{{ summary.todaySalesCount }}</div>
+        <div class="summary-label">Today's Sales</div>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="summary-card">
+      <ion-card-content>
+        <ion-icon name="cash-outline" color="success"></ion-icon>
+        <div class="summary-value">₹{{ summary.todayRevenue | number:'1.2-2' }}</div>
+        <div class="summary-label">Today's Revenue</div>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="summary-card">
+      <ion-card-content>
+        <ion-icon name="trending-up-outline" color="warning"></ion-icon>
+        <div class="summary-value">{{ summary.pendingReturnsCount }}</div>
+        <div class="summary-label">Returns</div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Filters -->
+  <ion-card>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-select label="Status" labelPlacement="floating" [value]="statusFilter"
+          interface="action-sheet" (ionChange)="onStatusChange($event)">
+          <ion-select-option *ngFor="let s of statuses" [value]="s">
+            {{ s || 'All' }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <div class="date-row">
+        <ion-item lines="none" class="date-item">
+          <ion-input type="date" [(ngModel)]="startDate" label="From" labelPlacement="floating"
+            (ionChange)="loadData()"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="date-item">
+          <ion-input type="date" [(ngModel)]="endDate" label="To" labelPlacement="floating"
+            (ionChange)="loadData()"></ion-input>
+        </ion-item>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Sales list -->
+  <div *ngIf="loading" class="loading-center"><ion-spinner name="crescent"></ion-spinner></div>
+
+  <ion-list *ngIf="!loading">
+    <ion-item *ngFor="let sale of sales" button (click)="viewSale(sale.id)" detail>
+      <ion-icon name="receipt-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h2>{{ sale.saleNumber }}</h2>
+        <p>{{ sale.customerName || 'Walk-in' }} · {{ sale.paymentMethod }}</p>
+        <p>{{ sale.createdAt | date:'dd MMM yyyy, HH:mm' }}</p>
+      </ion-label>
+      <div slot="end" class="sale-right">
+        <span class="sale-amount">₹{{ sale.totalAmount | number:'1.2-2' }}</span>
+        <ion-chip [color]="getStatusColor(sale.status)" class="status-chip">{{ sale.status }}</ion-chip>
+      </div>
+    </ion-item>
+    <div *ngIf="sales.length === 0" class="empty-state">
+      <ion-icon name="receipt-outline"></ion-icon>
+      <p>No sales found</p>
+    </div>
+  </ion-list>
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button color="primary" (click)="goToPOS()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

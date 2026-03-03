@@ -1,0 +1,4 @@
+.loading-center { display: flex; justify-content: center; padding: 40px; }
+.empty-state { text-align: center; padding: 40px; color: var(--ion-color-medium); ion-icon { font-size: 3rem; display: block; margin-bottom: 8px; } }
+.refund-amount { font-weight: 700; color: var(--ion-color-warning); }
+.reason { font-style: italic; color: var(--ion-color-medium); }

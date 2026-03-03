@@ -1,0 +1,75 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/pharmacy/history"></ion-back-button></ion-buttons>
+    <ion-title>Sale Detail</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="loading-center"><ion-spinner name="crescent"></ion-spinner></div>
+
+  <ng-container *ngIf="!loading && sale">
+    <!-- Header card -->
+    <ion-card>
+      <ion-card-content>
+        <div class="sale-header">
+          <div>
+            <h1 class="sale-number">{{ sale.saleNumber }}</h1>
+            <p class="sale-date">{{ sale.createdAt | date:'dd MMM yyyy, HH:mm' }}</p>
+          </div>
+          <ion-chip [color]="getStatusColor(sale.status)">{{ sale.status }}</ion-chip>
+        </div>
+        <div class="sale-meta">
+          <div class="meta-item" *ngIf="sale.customerName">
+            <ion-icon name="person-outline"></ion-icon>
+            <span>{{ sale.customerName }}</span>
+            <span *ngIf="sale.customerPhone"> · {{ sale.customerPhone }}</span>
+          </div>
+          <div class="meta-item">
+            <ion-icon name="cash-outline"></ion-icon>
+            <span>{{ sale.paymentMethod }} · {{ sale.paymentStatus }}</span>
+          </div>
+          <div class="meta-item" *ngIf="sale.processedBy">
+            <ion-icon name="person-outline"></ion-icon>
+            <span>By: {{ sale.processedBy }}</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Items -->
+    <ion-card>
+      <ion-card-content>
+        <h3 class="section-title">Items</h3>
+        <div class="items-header">
+          <span>Medicine</span><span>Qty</span><span>Price</span><span>Total</span>
+        </div>
+        <div *ngFor="let item of sale.items" class="item-row">
+          <span class="item-name">{{ item.medicineName }}</span>
+          <span>{{ item.quantity }}</span>
+          <span>₹{{ item.unitPrice | number:'1.2-2' }}</span>
+          <span class="item-total">₹{{ item.lineTotal | number:'1.2-2' }}</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Totals -->
+    <ion-card>
+      <ion-card-content>
+        <div class="total-row"><span>Subtotal</span><span>₹{{ sale.subtotalAmount | number:'1.2-2' }}</span></div>
+        <div class="total-row discount" *ngIf="sale.discountAmount > 0">
+          <span>Discount</span><span>− ₹{{ sale.discountAmount | number:'1.2-2' }}</span>
+        </div>
+        <div class="total-row grand-total"><span>Total</span><span>₹{{ sale.totalAmount | number:'1.2-2' }}</span></div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Return button -->
+    <div class="action-area" *ngIf="canReturn">
+      <ion-button expand="block" color="warning" (click)="processReturn()">
+        <ion-icon slot="start" name="return-down-back-outline"></ion-icon>
+        Process Return
+      </ion-button>
+    </div>
+  </ng-container>
+</ion-content>

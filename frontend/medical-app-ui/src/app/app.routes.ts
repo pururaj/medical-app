@@ -41,4 +41,9 @@ export const routes: Routes = [
     loadChildren: () => import('./features/inventory/inventory.routes').then(m => m.routes),
     canActivate: [authGuard]
   },
+  {
+    path: 'pharmacy',
+    loadChildren: () => import('./features/pharmacy/pharmacy.routes').then(m => m.routes),
+    canActivate: [authGuard]
+  },
 ];

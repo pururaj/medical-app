@@ -1,0 +1,31 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/pharmacy"></ion-back-button></ion-buttons>
+    <ion-title>Returns</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadReturns($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading" class="loading-center"><ion-spinner name="crescent"></ion-spinner></div>
+
+  <ion-list *ngIf="!loading">
+    <ion-item *ngFor="let r of returns" button (click)="viewReturn(r)" detail>
+      <ion-icon name="return-down-back-outline" slot="start" color="warning"></ion-icon>
+      <ion-label>
+        <h2>{{ r.returnNumber }}</h2>
+        <p>Original: {{ r.originalSaleNumber }}</p>
+        <p>{{ r.createdAt | date:'dd MMM yyyy, HH:mm' }}</p>
+        <p *ngIf="r.returnReason" class="reason">{{ r.returnReason }}</p>
+      </ion-label>
+      <div slot="end" class="refund-amount">₹{{ r.totalRefundAmount | number:'1.2-2' }}</div>
+    </ion-item>
+    <div *ngIf="returns.length === 0" class="empty-state">
+      <ion-icon name="return-down-back-outline"></ion-icon>
+      <p>No returns found</p>
+    </div>
+  </ion-list>
+</ion-content>

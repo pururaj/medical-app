@@ -1,0 +1,193 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Pharmacy POS</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="goToHistory()">
+        <ion-icon slot="icon-only" name="receipt-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="pos-layout">
+
+    <!-- LEFT: Medicine search + results -->
+    <div class="medicine-panel">
+      <ion-card class="panel-card">
+        <ion-card-header>
+          <ion-card-title>
+            <ion-icon name="search-outline"></ion-icon> Search Medicines
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-searchbar
+            placeholder="Search by name..."
+            [debounce]="300"
+            (ionInput)="onMedicineSearch($event)"
+            animated>
+          </ion-searchbar>
+
+          <div class="medicine-results" *ngIf="!loadingMedicines">
+            <div *ngFor="let med of medicines" class="medicine-item" (click)="addToCart(med)">
+              <div class="med-info">
+                <span class="med-name">{{ med.name }}</span>
+                <span class="med-sub">{{ med.category }} · {{ med.unit }}</span>
+              </div>
+              <div class="med-right">
+                <span class="med-price">₹{{ med.unitPrice | number:'1.2-2' }}</span>
+                <ion-chip [color]="med.totalStock > 0 ? 'success' : 'danger'" class="stock-chip">
+                  {{ med.totalStock }} in stock
+                </ion-chip>
+              </div>
+            </div>
+            <div *ngIf="medicines.length === 0" class="empty-state">No medicines found</div>
+          </div>
+
+          <div *ngIf="loadingMedicines" class="loading-center">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- RIGHT: Cart + checkout -->
+    <div class="cart-panel">
+      <ion-card class="panel-card">
+        <ion-card-header>
+          <ion-card-title>
+            <ion-icon name="cart-outline"></ion-icon> Cart
+            <ion-chip color="primary" class="cart-count">{{ cartItems.length }} items</ion-chip>
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+
+          <!-- Cart items -->
+          <div class="cart-empty" *ngIf="cartItems.length === 0">
+            <ion-icon name="cart-outline" class="empty-icon"></ion-icon>
+            <p>Add medicines from the left panel</p>
+          </div>
+
+          <div class="cart-items" *ngIf="cartItems.length > 0">
+            <div *ngFor="let item of cartItems; let i = index" class="cart-item">
+              <div class="cart-item-info">
+                <span class="cart-med-name">{{ item.medicine.name }}</span>
+                <span class="cart-med-price">₹{{ item.unitPrice | number:'1.2-2' }} × {{ item.quantity }}</span>
+              </div>
+              <div class="cart-item-controls">
+                <ion-button fill="clear" size="small" (click)="updateQty(i, -1)">
+                  <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+                </ion-button>
+                <span class="qty-display">{{ item.quantity }}</span>
+                <ion-button fill="clear" size="small" (click)="updateQty(i, 1)">
+                  <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="removeFromCart(i)">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+                <span class="line-total">₹{{ (item.unitPrice * item.quantity) | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer section -->
+          <div class="section-divider">
+            <ion-icon name="person-outline"></ion-icon> Customer
+          </div>
+
+          <ion-segment [value]="customerMode" (ionChange)="onCustomerModeChange($event)" class="customer-segment">
+            <ion-segment-button value="walkin">Walk-in</ion-segment-button>
+            <ion-segment-button value="existing">Existing</ion-segment-button>
+          </ion-segment>
+
+          <div *ngIf="customerMode === 'walkin'" class="walkin-fields">
+            <ion-item lines="none" class="compact-item">
+              <ion-input [(ngModel)]="walkinName" placeholder="Customer name (optional)" labelPlacement="floating" label="Name"></ion-input>
+            </ion-item>
+            <ion-item lines="none" class="compact-item">
+              <ion-input [(ngModel)]="walkinPhone" placeholder="Phone (optional)" type="tel" labelPlacement="floating" label="Phone"></ion-input>
+            </ion-item>
+          </div>
+
+          <div *ngIf="customerMode === 'existing'" class="existing-customer">
+            <div *ngIf="selectedCustomer" class="selected-customer" (click)="clearCustomer()">
+              <ion-icon name="person-outline"></ion-icon>
+              <span>{{ selectedCustomer.name }} ({{ selectedCustomer.phone }})</span>
+              <ion-icon name="close-outline"></ion-icon>
+            </div>
+            <div *ngIf="!selectedCustomer">
+              <ion-searchbar
+                placeholder="Search customers..."
+                [debounce]="300"
+                (ionInput)="searchCustomers($event)"
+                animated>
+              </ion-searchbar>
+              <div *ngFor="let c of customerResults" class="customer-result" (click)="selectCustomer(c)">
+                {{ c.name }} — {{ c.phone }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment & discount -->
+          <div class="section-divider">Payment</div>
+
+          <ion-item lines="none" class="compact-item">
+            <ion-select
+              label="Payment Method"
+              labelPlacement="floating"
+              [value]="paymentMethod"
+              interface="action-sheet"
+              (ionChange)="onPaymentChange($event)">
+              <ion-select-option *ngFor="let m of paymentMethods" [value]="m">{{ m }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item lines="none" class="compact-item">
+            <ion-input
+              [(ngModel)]="discountAmount"
+              type="number"
+              min="0"
+              placeholder="0.00"
+              label="Discount (₹)"
+              labelPlacement="floating">
+            </ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="compact-item">
+            <ion-input
+              [(ngModel)]="notes"
+              placeholder="Optional notes"
+              label="Notes"
+              labelPlacement="floating">
+            </ion-input>
+          </ion-item>
+
+          <!-- Totals -->
+          <div class="totals-section">
+            <div class="total-row">
+              <span>Subtotal</span><span>₹{{ subtotal | number:'1.2-2' }}</span>
+            </div>
+            <div class="total-row discount" *ngIf="discountAmount > 0">
+              <span>Discount</span><span>− ₹{{ discountAmount | number:'1.2-2' }}</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>Total</span><span>₹{{ total | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <ion-button
+            expand="block"
+            color="success"
+            class="complete-btn"
+            [disabled]="!canSubmit || submitting"
+            (click)="completeSale()">
+            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+            {{ submitting ? 'Processing...' : 'Complete Sale' }}
+          </ion-button>
+
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+  </div>
+</ion-content>

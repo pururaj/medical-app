@@ -22,6 +22,7 @@ import {
   calendarOutline,
   peopleOutline,
   medkitOutline,
+  storefrontOutline,
   receiptOutline,
   statsChartOutline,
   personCircleOutline,
@@ -49,6 +50,7 @@ const ALL_QUICK_ACTIONS: Record<string, QuickAction[]> = {
     { label: 'Doctors',          icon: 'medical-outline',        route: '/doctors',            color: '#92949c', description: 'View doctor profiles' },
     { label: 'Staff',            icon: 'people-circle-outline',  route: '/staff',              color: '#5260ff', description: 'Manage medical staff' },
     { label: 'Inventory',        icon: 'medkit-outline',         route: '/inventory',          color: '#eb445a', description: 'Medicines & stock' },
+    { label: 'Pharmacy POS',     icon: 'storefront-outline',     route: '/pharmacy',            color: '#3880ff', description: 'Sales & billing' },
   ],
   DOCTOR: [
     { label: 'My Appointments', icon: 'receipt-outline', route: '/appointments',       color: '#2dd36f', description: "View today's appointments" },
@@ -61,11 +63,13 @@ const ALL_QUICK_ACTIONS: Record<string, QuickAction[]> = {
     { label: 'Appointments',     icon: 'receipt-outline',  route: '/appointments',       color: '#2dd36f', description: 'View all appointments' },
     { label: 'Patients',         icon: 'people-outline',   route: '/patients',           color: '#ffc409', description: 'Manage patient records' },
     { label: 'Doctor Queue',     icon: 'list-outline',     route: '/appointments/queue', color: '#eb445a', description: "Today's queue dashboard" },
+    { label: 'Pharmacy POS',     icon: 'storefront-outline', route: '/pharmacy',           color: '#3880ff', description: 'Sales & billing' },
   ],
   PHARMACIST: [
     { label: 'Patients',   icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
     { label: 'Doctors',    icon: 'medical-outline', route: '/doctors',    color: '#92949c', description: 'View doctor profiles' },
-    { label: 'Inventory',  icon: 'medkit-outline',  route: '/inventory',  color: '#eb445a', description: 'Medicines & stock' },
+    { label: 'Inventory',    icon: 'medkit-outline',     route: '/inventory', color: '#eb445a', description: 'Medicines & stock' },
+    { label: 'Pharmacy POS', icon: 'storefront-outline', route: '/pharmacy',  color: '#3880ff', description: 'Sales & billing' },
   ],
   LAB_TECH: [
     { label: 'Patients', icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
@@ -114,6 +118,7 @@ export class HomePage {
       calendarOutline,
       peopleOutline,
       medkitOutline,
+      storefrontOutline,
       receiptOutline,
       statsChartOutline,
       personCircleOutline,
