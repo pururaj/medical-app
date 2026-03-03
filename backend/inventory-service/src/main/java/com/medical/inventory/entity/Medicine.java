@@ -71,6 +71,6 @@ public class Medicine {
     }
 
     public enum Unit {
-        TABLET, ML, MG, UNIT
+        TABLET, CAPSULE, ML, MG, UNIT
     }
 }
