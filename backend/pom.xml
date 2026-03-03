@@ -39,6 +39,7 @@
         <module>doctor-service</module>
         <module>api-gateway</module>
         <module>auth-service</module>
+        <module>inventory-service</module>
     </modules>
 
     <dependencyManagement>

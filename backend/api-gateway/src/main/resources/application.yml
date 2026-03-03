@@ -39,6 +39,14 @@ spring:
           filters:
             - RewritePath=/api/v1/staff/(?<segment>.*), /api/v1/staff/$\{segment}
 
+        # Inventory Service Routes
+        - id: inventory-service
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/v1/inventory/**
+          filters:
+            - RewritePath=/api/v1/inventory/(?<segment>.*), /api/v1/inventory/$\{segment}
+
         # Doctor Service Routes
         - id: doctor-service
           uri: http://localhost:8083
