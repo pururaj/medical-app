@@ -41,6 +41,7 @@
         <module>auth-service</module>
         <module>inventory-service</module>
         <module>pharmacy-service</module>
+        <module>lab-service</module>
     </modules>
 
     <dependencyManagement>

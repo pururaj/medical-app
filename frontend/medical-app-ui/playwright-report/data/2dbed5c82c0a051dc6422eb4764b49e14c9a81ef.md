@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e7]:
+      - generic [ref=e11]: MedApp
+      - button [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]:
+          - generic:
+            - img:
+              - generic:
+                - img
+  - main [ref=e16]:
+    - generic [ref=e18]:
+      - generic:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - heading "Welcome, labtech1!" [level=1] [ref=e21]
+            - paragraph [ref=e22]: Wednesday, 4 March 2026
+          - generic [ref=e24] [cursor=pointer]: Lab Technician
+        - generic [ref=e25]: Quick Actions
+        - generic [ref=e27]:
+          - generic:
+            - button "Patients View patient records" [ref=e30] [cursor=pointer]:
+              - generic [ref=e31]:
+                - img [ref=e33]:
+                  - img [ref=e35]
+                - generic [ref=e40]:
+                  - generic: Patients
+                - paragraph [ref=e41]: View patient records
+            - button "Doctors View doctor profiles" [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]:
+                - img [ref=e47]:
+                  - img [ref=e49]
+                - generic [ref=e51]:
+                  - generic: Doctors
+                - paragraph [ref=e52]: View doctor profiles
+            - button "Laboratory Tests & results" [ref=e55] [cursor=pointer]:
+              - generic [ref=e56]:
+                - img [ref=e58]:
+                  - img [ref=e60]
+                - generic [ref=e62]:
+                  - generic: Laboratory
+                - paragraph [ref=e63]: Tests & results
+```

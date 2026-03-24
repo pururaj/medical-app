@@ -51,6 +51,9 @@ public class Medicine {
     @Column(name = "unit_price", precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
+    @Column(name = "barcode", unique = true, length = 100)
+    private String barcode;
+
     @Column(name = "reorder_level", nullable = false)
     @Builder.Default
     private Integer reorderLevel = 10;

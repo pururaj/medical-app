@@ -51,5 +51,17 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/create-return/create-return.page').then(m => m.CreateReturnPage),
     canActivate: [roleGuard],
     data: { roles: PHARMACY_ROLES }
+  },
+  {
+    path: 'return-exchange',
+    loadComponent: () => import('./pages/return-exchange/return-exchange.page').then(m => m.ReturnExchangePage),
+    canActivate: [roleGuard],
+    data: { roles: PHARMACY_ROLES }
+  },
+  {
+    path: 'day-end-report',
+    loadComponent: () => import('./pages/day-end-report/day-end-report.page').then(m => m.DayEndReportPage),
+    canActivate: [roleGuard],
+    data: { roles: PHARMACY_ROLES }
   }
 ];

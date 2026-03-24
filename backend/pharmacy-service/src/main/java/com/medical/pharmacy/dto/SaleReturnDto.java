@@ -17,8 +17,12 @@ public class SaleReturnDto {
     private Long originalSaleId;
     private String originalSaleNumber;
     private String returnReason;
+    private String transactionType;
     private BigDecimal totalRefundAmount;
+    private BigDecimal exchangeAmount;
+    private BigDecimal netSettlement;
     private String processedBy;
     private List<SaleReturnItemDto> returnItems;
+    private List<ExchangeItemDto> exchangeItems;
     private LocalDateTime createdAt;
 }

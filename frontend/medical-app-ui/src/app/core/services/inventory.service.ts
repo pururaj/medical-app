@@ -3,10 +3,32 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface ScannedMedicineDto {
+  name?: string;
+  genericName?: string;
+  manufacturer?: string;
+  category?: string;
+  unit?: string;
+  quantity?: number;
+  unitPrice?: number;
+  barcode?: string;
+}
+
+export interface BillScanResponse {
+  medicines: ScannedMedicineDto[];
+  rawResponse?: string;
+}
+
+export interface BulkCreateRequest {
+  medicines: ScannedMedicineDto[];
+  performedBy?: string;
+}
+
 export interface MedicineDto {
   id: number;
   name: string;
   genericName?: string;
+  barcode?: string;
   category: string;
   manufacturer?: string;
   description?: string;
@@ -28,6 +50,7 @@ export interface CreateMedicineRequest {
   unit: string;
   unitPrice: number;
   reorderLevel?: number;
+  barcode?: string;
 }
 
 export interface UpdateMedicineRequest {
@@ -159,5 +182,25 @@ export class InventoryService {
 
   getTransactions(medicineId: number): Observable<ApiResponse<StockTransactionDto[]>> {
     return this.http.get<ApiResponse<StockTransactionDto[]>>(`${this.BASE_URL}/transactions/medicine/${medicineId}`);
+  }
+
+  scanBill(image: File): Observable<ApiResponse<BillScanResponse>> {
+    const formData = new FormData();
+    formData.append('image', image);
+    return this.http.post<ApiResponse<BillScanResponse>>(`${this.BASE_URL}/medicines/scan-bill`, formData);
+  }
+
+  scanBarcode(barcode: string): Observable<ApiResponse<ScannedMedicineDto>> {
+    return this.http.post<ApiResponse<ScannedMedicineDto>>(`${this.BASE_URL}/medicines/scan-barcode`, { barcode });
+  }
+
+  scanLabel(image: File): Observable<ApiResponse<ScannedMedicineDto>> {
+    const formData = new FormData();
+    formData.append('image', image);
+    return this.http.post<ApiResponse<ScannedMedicineDto>>(`${this.BASE_URL}/medicines/scan-label`, formData);
+  }
+
+  bulkCreate(req: BulkCreateRequest): Observable<ApiResponse<MedicineDto[]>> {
+    return this.http.post<ApiResponse<MedicineDto[]>>(`${this.BASE_URL}/medicines/bulk`, req);
   }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificationExecutor<Sale> {
 
@@ -18,4 +19,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificat
 
     @Query("SELECT COALESCE(SUM(s.totalAmount), 0) FROM Sale s WHERE s.createdAt >= :startOfDay AND s.createdAt < :endOfDay AND s.status <> 'CANCELLED'")
     BigDecimal sumTodayRevenue(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
+
+    @Query("SELECT s FROM Sale s JOIN FETCH s.items WHERE s.createdAt >= :start AND s.createdAt < :end AND s.status <> 'CANCELLED'")
+    List<Sale> findSalesWithItemsForDateRange(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

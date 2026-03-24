@@ -1,0 +1,205 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/pharmacy/returns"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Return &amp; Exchange</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Transaction Type Selector -->
+  <ion-segment [(ngModel)]="transactionType" style="margin-bottom: 16px;">
+    <ion-segment-button value="RETURN">
+      <ion-icon name="return-down-back-outline"></ion-icon>
+      <ion-label>Return</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="EXCHANGE">
+      <ion-icon name="swap-horizontal-outline"></ion-icon>
+      <ion-label>Exchange</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- STEP 1: Find Sale -->
+  <ion-card *ngIf="!sale">
+    <ion-card-header>
+      <ion-card-title>Find Original Sale</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-searchbar
+        [(ngModel)]="saleSearchTerm"
+        placeholder="Search by sale number or customer name..."
+        (ionInput)="searchSales()"
+        debounce="400">
+      </ion-searchbar>
+      <div *ngIf="searchLoading" style="text-align:center; padding:8px;">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+      <ion-list *ngIf="searchResults.length > 0">
+        <ion-item *ngFor="let s of searchResults" button (click)="selectSale(s)">
+          <ion-label>
+            <h3>{{ s.saleNumber }}</h3>
+            <p>{{ s.customerName || 'Walk-in' }} &bull; ₹{{ s.totalAmount | number:'1.2-2' }}</p>
+            <p>{{ s.createdAt | date:'dd MMM yyyy HH:mm' }}</p>
+          </ion-label>
+          <ion-badge slot="end" [color]="s.status === 'COMPLETED' ? 'success' : 'warning'">
+            {{ s.status }}
+          </ion-badge>
+        </ion-item>
+      </ion-list>
+      <p *ngIf="!searchLoading && saleSearchTerm && searchResults.length === 0"
+         style="text-align:center; color:#888; padding:8px;">
+        No eligible sales found
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- STEP 2: Select Items to Return -->
+  <ng-container *ngIf="sale">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          Sale: {{ sale.saleNumber }}
+          <ion-button fill="clear" size="small" color="medium" (click)="clearSale()" style="float:right">
+            Change
+          </ion-button>
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p style="margin:0; color:#666;">
+          {{ sale.customerName || 'Walk-in' }}
+          &bull; ₹{{ sale.totalAmount | number:'1.2-2' }}
+          &bull; {{ sale.createdAt | date:'dd MMM yyyy' }}
+        </p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Select Items to Return</ion-card-title>
+      </ion-card-header>
+      <ion-card-content style="padding: 0;">
+        <ion-item *ngFor="let ri of returnItems">
+          <ion-checkbox slot="start" [(ngModel)]="ri.selected"></ion-checkbox>
+          <ion-label>
+            <h3>{{ ri.saleItem.medicineName }}</h3>
+            <p>₹{{ ri.saleItem.unitPrice | number:'1.2-2' }} × {{ ri.saleItem.quantity }}</p>
+          </ion-label>
+          <div slot="end" style="display:flex; align-items:center; gap:8px;" *ngIf="ri.selected">
+            <ion-button fill="clear" size="small" (click)="ri.quantity = ri.quantity > 1 ? ri.quantity - 1 : 1">
+              <ion-icon name="remove-outline"></ion-icon>
+            </ion-button>
+            <span style="min-width:24px; text-align:center; font-weight:600;">{{ ri.quantity }}</span>
+            <ion-button fill="clear" size="small"
+              (click)="ri.quantity = ri.quantity < ri.saleItem.quantity ? ri.quantity + 1 : ri.saleItem.quantity">
+              <ion-icon name="add-outline"></ion-icon>
+            </ion-button>
+          </div>
+          <ion-note slot="end" *ngIf="ri.selected">
+            ₹{{ (ri.saleItem.unitPrice * ri.quantity) | number:'1.2-2' }}
+          </ion-note>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- STEP 3: Exchange Items (only for EXCHANGE type) -->
+    <ion-card *ngIf="transactionType === 'EXCHANGE'">
+      <ion-card-header>
+        <ion-card-title>Add Exchange Items</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-searchbar
+          [(ngModel)]="medicineSearchTerm"
+          placeholder="Search medicines to exchange..."
+          (ionInput)="searchMedicines($event)"
+          debounce="400">
+        </ion-searchbar>
+        <div *ngIf="medicineSearchLoading" style="text-align:center; padding:4px;">
+          <ion-spinner name="dots" style="transform:scale(0.7)"></ion-spinner>
+        </div>
+        <ion-list *ngIf="medicineResults.length > 0">
+          <ion-item *ngFor="let m of medicineResults" button (click)="addToExchangeCart(m)">
+            <ion-label>
+              <h3>{{ m.name }}</h3>
+              <p>{{ m.unit }} &bull; ₹{{ m.unitPrice | number:'1.2-2' }}</p>
+            </ion-label>
+            <ion-icon slot="end" name="add-outline" color="primary"></ion-icon>
+          </ion-item>
+        </ion-list>
+
+        <!-- Exchange Cart -->
+        <div *ngIf="exchangeCart.length > 0" style="margin-top: 12px;">
+          <h4 style="margin: 0 0 8px; font-size: 14px; color: #555;">Exchange Cart</h4>
+          <ion-item *ngFor="let e of exchangeCart; let i = index">
+            <ion-label>
+              <h3>{{ e.medicine.name }}</h3>
+              <p>₹{{ e.unitPrice | number:'1.2-2' }}</p>
+            </ion-label>
+            <div slot="end" style="display:flex; align-items:center; gap:8px;">
+              <ion-button fill="clear" size="small" (click)="e.quantity = e.quantity > 1 ? e.quantity - 1 : 1">
+                <ion-icon name="remove-outline"></ion-icon>
+              </ion-button>
+              <span style="min-width:24px; text-align:center; font-weight:600;">{{ e.quantity }}</span>
+              <ion-button fill="clear" size="small" (click)="e.quantity = e.quantity + 1">
+                <ion-icon name="add-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" size="small" color="danger" (click)="removeFromExchangeCart(i)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-item>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Reason -->
+    <ion-card>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-label position="stacked">Reason (optional)</ion-label>
+          <ion-textarea [(ngModel)]="returnReason" placeholder="Enter reason for return / exchange..." rows="2"></ion-textarea>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Summary -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Settlement Summary</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span>Refund Amount</span>
+          <strong style="color:#2dd36f;">₹{{ totalRefund | number:'1.2-2' }}</strong>
+        </div>
+        <ng-container *ngIf="transactionType === 'EXCHANGE'">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <span>Exchange Amount</span>
+            <strong style="color:#eb445a;">₹{{ exchangeTotal | number:'1.2-2' }}</strong>
+          </div>
+          <hr style="margin: 8px 0; border-color:#eee;">
+          <div style="display:flex; justify-content:space-between; font-size:1.1em;">
+            <strong>Net Settlement</strong>
+            <strong [style.color]="netSettlement >= 0 ? '#2dd36f' : '#eb445a'">
+              {{ netSettlement >= 0 ? '₹' + (netSettlement | number:'1.2-2') + ' refund' : '₹' + ((-netSettlement) | number:'1.2-2') + ' to charge' }}
+            </strong>
+          </div>
+        </ng-container>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Submit -->
+    <ion-button
+      expand="block"
+      [color]="transactionType === 'EXCHANGE' ? 'tertiary' : 'success'"
+      [disabled]="!canSubmit"
+      (click)="submit()"
+      style="margin-top: 8px;">
+      <ion-icon [name]="transactionType === 'EXCHANGE' ? 'swap-horizontal-outline' : 'checkmark-circle-outline'"
+                slot="start"></ion-icon>
+      {{ transactionType === 'EXCHANGE' ? 'Confirm Exchange' : 'Confirm Return' }}
+    </ion-button>
+  </ng-container>
+
+</ion-content>

@@ -18,7 +18,7 @@ export interface LoginApiResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly AUTH_URL = 'http://localhost:8086/auth';
+  private readonly AUTH_URL = '/auth';
 
   constructor(private http: HttpClient, private router: Router) {}
 

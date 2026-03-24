@@ -39,5 +39,17 @@ export const routes: Routes = [
     canActivate: [roleGuard],
     data: { roles: INVENTORY_ROLES },
     loadComponent: () => import('./pages/stock-adjustment/stock-adjustment.page').then(m => m.StockAdjustmentPage)
+  },
+  {
+    path: 'scan-bill',
+    canActivate: [roleGuard],
+    data: { roles: INVENTORY_ROLES },
+    loadComponent: () => import('./pages/bill-scan/bill-scan.page').then(m => m.BillScanPage)
+  },
+  {
+    path: 'scan-medicine',
+    canActivate: [roleGuard],
+    data: { roles: INVENTORY_ROLES },
+    loadComponent: () => import('./pages/medicine-scan/medicine-scan.page').then(m => m.MedicineScanPage)
   }
 ];

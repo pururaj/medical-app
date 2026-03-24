@@ -47,6 +47,14 @@ spring:
           filters:
             - RewritePath=/api/v1/pharmacy/(?<segment>.*), /api/v1/pharmacy/$\{segment}
 
+        # Lab Service Routes
+        - id: lab-service
+          uri: http://localhost:8089
+          predicates:
+            - Path=/api/v1/lab/**
+          filters:
+            - RewritePath=/api/v1/lab/(?<segment>.*), /api/v1/lab/$\{segment}
+
         # Inventory Service Routes
         - id: inventory-service
           uri: http://localhost:8087
@@ -88,6 +96,7 @@ spring:
             allowedOrigins:
               - "http://localhost:4200"
               - "http://localhost:8100"
+              - "https://dorothea-grapy-overlogically.ngrok-free.dev"
             allowedMethods:
               - GET
               - POST

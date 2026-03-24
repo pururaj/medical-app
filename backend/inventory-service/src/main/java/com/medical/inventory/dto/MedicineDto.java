@@ -18,6 +18,7 @@ public class MedicineDto {
     private Long id;
     private String name;
     private String genericName;
+    private String barcode;
     private String category;
     private String manufacturer;
     private String description;

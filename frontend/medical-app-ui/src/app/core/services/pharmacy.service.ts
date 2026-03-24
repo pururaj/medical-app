@@ -111,17 +111,56 @@ export interface SaleReturnDto {
   originalSaleId: number;
   originalSaleNumber: string;
   returnReason?: string;
+  transactionType?: string;
   totalRefundAmount: number;
+  exchangeAmount?: number;
+  netSettlement?: number;
   processedBy?: string;
   returnItems: SaleReturnItemDto[];
+  exchangeItems?: ExchangeItemDto[];
   createdAt: string;
+}
+
+export interface ExchangeItemRequest {
+  medicineId: number;
+  medicineName: string;
+  medicineUnit?: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface ExchangeItemDto {
+  id: number;
+  medicineId: number;
+  medicineName: string;
+  medicineUnit?: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
 }
 
 export interface CreateReturnRequest {
   originalSaleId: number;
   returnReason?: string;
   processedBy?: string;
+  transactionType?: 'RETURN' | 'EXCHANGE';
   items: CreateReturnItemRequest[];
+  exchangeItems?: ExchangeItemRequest[];
+}
+
+export interface DayEndReportDto {
+  date: string;
+  generatedAt: string;
+  totalSalesCount: number;
+  totalRevenue: number;
+  paymentBreakdown: Record<string, { count: number; amount: number }>;
+  totalReturnsCount: number;
+  totalRefundAmount: number;
+  totalExchangesCount: number;
+  totalExchangeAmount: number;
+  netRevenue: number;
+  topMedicines: { medicineName: string; totalQuantity: number; totalAmount: number }[];
+  hourlySales: { hour: number; label: string; salesCount: number; revenue: number }[];
 }
 
 export interface POSSummaryDto {
@@ -179,11 +218,12 @@ export class PharmacyService {
   }
 
   // Sales
-  getSales(page = 0, size = 20, status?: string, startDate?: string, endDate?: string): Observable<ApiResponse<PageResponse<SaleDto>>> {
+  getSales(page = 0, size = 20, status?: string, startDate?: string, endDate?: string, search?: string): Observable<ApiResponse<PageResponse<SaleDto>>> {
     const params: Record<string, string | number> = { page, size };
     if (status) params['status'] = status;
     if (startDate) params['startDate'] = startDate;
     if (endDate) params['endDate'] = endDate;
+    if (search) params['search'] = search;
     return this.http.get<ApiResponse<PageResponse<SaleDto>>>(`${this.base}/sales`, { params: params as any });
   }
 
@@ -215,5 +255,12 @@ export class PharmacyService {
   // Summary
   getSummary(): Observable<ApiResponse<POSSummaryDto>> {
     return this.http.get<ApiResponse<POSSummaryDto>>(`${this.base}/summary`);
+  }
+
+  // Day End Report
+  getDayEndReport(date?: string): Observable<ApiResponse<DayEndReportDto>> {
+    const params: Record<string, string> = {};
+    if (date) params['date'] = date;
+    return this.http.get<ApiResponse<DayEndReportDto>>(`${this.base}/day-end-report`, { params });
   }
 }

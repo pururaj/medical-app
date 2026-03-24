@@ -1,0 +1,252 @@
+// Step Indicator
+.step-indicator {
+  margin: 16px;
+
+  ion-grid {
+    padding: 0;
+  }
+
+  .step-col {
+    text-align: center;
+    padding: 8px 4px;
+  }
+
+  .step-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--ion-color-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    transition: all 0.3s ease;
+
+    ion-icon {
+      font-size: 24px;
+      color: var(--ion-color-medium);
+    }
+
+    &.active {
+      background-color: var(--ion-color-primary);
+
+      ion-icon {
+        color: white;
+      }
+    }
+
+    &.completed {
+      background-color: var(--ion-color-success);
+
+      ion-icon {
+        color: white;
+      }
+    }
+  }
+
+  .step-label {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    display: block;
+  }
+}
+
+// Doctor Cards
+.doctor-card {
+  height: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  ion-card-content {
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ion-color-primary);
+    }
+
+    .specialization {
+      margin: 0 0 12px 0;
+      color: var(--ion-color-medium);
+      font-size: 14px;
+    }
+
+    .fee {
+      margin: 0;
+      font-weight: 500;
+      color: var(--ion-color-dark);
+      font-size: 14px;
+    }
+  }
+}
+
+// Date Picker
+ion-datetime {
+  --background: transparent;
+  width: 100%;
+}
+
+// Time Slots
+.loading-container {
+  text-align: center;
+  padding: 40px 20px;
+
+  ion-spinner {
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+  }
+}
+
+.no-slots {
+  text-align: center;
+  padding: 40px 20px;
+
+  ion-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin-bottom: 20px;
+  }
+}
+
+.time-slot {
+  width: 100%;
+  justify-content: center;
+  margin: 4px 0;
+  cursor: pointer;
+  height: 40px;
+
+  &:not([disabled]) {
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  ion-label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  ion-icon {
+    margin-left: 4px;
+  }
+}
+
+// Form Items
+ion-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 16px;
+
+  ion-label[position="stacked"] {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--ion-color-dark);
+  }
+
+  ion-textarea,
+  ion-input {
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    border: 1px solid var(--ion-color-light-shade);
+    border-radius: 8px;
+    margin-top: 4px;
+  }
+}
+
+// Buttons
+.proceed-btn,
+.confirm-btn {
+  margin-top: 24px;
+  --border-radius: 8px;
+  font-weight: 600;
+}
+
+// Confirmation Details
+.confirmation-details {
+  margin-bottom: 24px;
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--ion-color-light);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    ion-label {
+      color: var(--ion-color-medium);
+      font-size: 14px;
+      flex: 0 0 40%;
+    }
+
+    ion-text {
+      flex: 1;
+      text-align: right;
+      font-size: 14px;
+
+      strong {
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+}
+
+// Success Content
+.success-content {
+  text-align: center;
+  padding: 40px 20px;
+
+  .success-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    color: white;
+  }
+
+  h2 {
+    margin: 0 0 12px 0;
+    color: white;
+    font-size: 24px;
+  }
+
+  p {
+    margin: 0 0 24px 0;
+    color: white;
+    opacity: 0.9;
+  }
+
+  ion-button {
+    margin-top: 8px;
+  }
+}
+
+// Responsive adjustments
+@media (min-width: 768px) {
+  ion-card {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .step-indicator {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

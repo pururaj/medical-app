@@ -1,3 +1,10 @@
+.scan-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  ion-button { flex: 1; }
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

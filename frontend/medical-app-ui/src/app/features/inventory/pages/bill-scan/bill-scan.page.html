@@ -1,0 +1,112 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Scan Bill</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Step 1: Upload -->
+  <ng-container *ngIf="step === 'upload'">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Upload Supplier Invoice</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p style="color: var(--ion-color-medium); margin-bottom: 16px;">
+          Take a photo or upload an image of a supplier invoice.
+          Our AI will extract medicine details automatically.
+        </p>
+
+        <div class="upload-area" (click)="fileInput.click()">
+          <img *ngIf="previewUrl" [src]="previewUrl" class="preview-image" alt="Bill preview" />
+          <div *ngIf="!previewUrl" class="upload-placeholder">
+            <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+            <p>Tap to select image</p>
+            <p class="hint">JPG, PNG or PDF</p>
+          </div>
+          <input #fileInput type="file" accept="image/*,application/pdf" hidden (change)="onFileSelected($event)" />
+        </div>
+
+        <ion-button
+          expand="block"
+          [disabled]="!selectedFile"
+          (click)="processBill()"
+          style="margin-top: 16px;">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Analyse Bill
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <!-- Step 2: Processing -->
+  <ng-container *ngIf="step === 'processing'">
+    <div class="processing-state">
+      <ion-spinner name="crescent" style="width: 64px; height: 64px;"></ion-spinner>
+      <h3>Analysing invoice...</h3>
+      <p>AI is extracting medicine details from your bill</p>
+    </div>
+  </ng-container>
+
+  <!-- Step 3: Review -->
+  <ng-container *ngIf="step === 'review'">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h3 style="margin: 0;">Review Medicines ({{ scannedMedicines.length }})</h3>
+      <ion-button fill="clear" size="small" (click)="reset()">Re-scan</ion-button>
+    </div>
+
+    <p style="color: var(--ion-color-medium); margin-bottom: 12px; font-size: 14px;">
+      Review and edit details. Uncheck items you don't want to save.
+    </p>
+
+    <ion-card *ngFor="let m of scannedMedicines; let i = index" class="medicine-review-card">
+      <ion-card-content>
+        <div style="display: flex; align-items: flex-start; gap: 8px;">
+          <ion-checkbox [(ngModel)]="m.include" style="margin-top: 4px; flex-shrink: 0;"></ion-checkbox>
+          <div style="flex: 1;">
+            <ion-item lines="none" style="--padding-start: 0;">
+              <ion-label position="stacked">Name</ion-label>
+              <ion-input [(ngModel)]="m.name" placeholder="Medicine name"></ion-input>
+            </ion-item>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <ion-item lines="none" style="--padding-start: 0;">
+                <ion-label position="stacked">Qty</ion-label>
+                <ion-input type="number" [(ngModel)]="m.quantity" placeholder="0"></ion-input>
+              </ion-item>
+              <ion-item lines="none" style="--padding-start: 0;">
+                <ion-label position="stacked">Unit Price (₹)</ion-label>
+                <ion-input type="number" [(ngModel)]="m.unitPrice" placeholder="0.00"></ion-input>
+              </ion-item>
+            </div>
+            <div style="display: flex; gap: 8px; font-size: 12px; color: var(--ion-color-medium); margin-top: 4px; flex-wrap: wrap;">
+              <span *ngIf="m.manufacturer">{{ m.manufacturer }}</span>
+              <span *ngIf="m.category">· {{ m.category }}</span>
+              <span *ngIf="m.unit">· {{ m.unit }}</span>
+            </div>
+          </div>
+          <ion-button fill="clear" color="danger" size="small" (click)="removeItem(i)">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <div *ngIf="scannedMedicines.length === 0" style="text-align: center; padding: 32px; color: var(--ion-color-medium);">
+      <p>No medicines detected. Try re-scanning with a clearer image.</p>
+    </div>
+
+    <ion-button
+      expand="block"
+      [disabled]="selectedCount === 0"
+      (click)="confirmAndSave()"
+      style="margin-top: 16px;">
+      <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+      Confirm &amp; Save {{ selectedCount }} Medicine{{ selectedCount !== 1 ? 's' : '' }}
+    </ion-button>
+  </ng-container>
+
+</ion-content>

@@ -29,7 +29,8 @@ import {
   logOutOutline,
   listOutline,
   medicalOutline,
-  peopleCircleOutline
+  peopleCircleOutline,
+  flaskOutline
 } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -51,12 +52,14 @@ const ALL_QUICK_ACTIONS: Record<string, QuickAction[]> = {
     { label: 'Staff',            icon: 'people-circle-outline',  route: '/staff',              color: '#5260ff', description: 'Manage medical staff' },
     { label: 'Inventory',        icon: 'medkit-outline',         route: '/inventory',          color: '#eb445a', description: 'Medicines & stock' },
     { label: 'Pharmacy POS',     icon: 'storefront-outline',     route: '/pharmacy',            color: '#3880ff', description: 'Sales & billing' },
+    { label: 'Laboratory',       icon: 'flask-outline',          route: '/lab',                 color: '#2dd36f', description: 'Tests & results' },
   ],
   DOCTOR: [
     { label: 'My Appointments', icon: 'receipt-outline', route: '/appointments',       color: '#2dd36f', description: "View today's appointments" },
     { label: 'Doctor Queue',    icon: 'list-outline',     route: '/appointments/queue', color: '#3880ff', description: 'Manage patient queue' },
     { label: 'Patients',        icon: 'people-outline',   route: '/patients/1',         color: '#ffc409', description: 'View patient records' },
     { label: 'Doctors',         icon: 'medical-outline',  route: '/doctors',            color: '#92949c', description: 'View doctor profiles' },
+    { label: 'Laboratory',      icon: 'flask-outline',    route: '/lab',                color: '#2dd36f', description: 'Tests & results' },
   ],
   RECEPTIONIST: [
     { label: 'Book Appointment', icon: 'calendar-outline', route: '/appointments/book',  color: '#3880ff', description: 'Schedule a doctor visit' },
@@ -64,6 +67,7 @@ const ALL_QUICK_ACTIONS: Record<string, QuickAction[]> = {
     { label: 'Patients',         icon: 'people-outline',   route: '/patients',           color: '#ffc409', description: 'Manage patient records' },
     { label: 'Doctor Queue',     icon: 'list-outline',     route: '/appointments/queue', color: '#eb445a', description: "Today's queue dashboard" },
     { label: 'Pharmacy POS',     icon: 'storefront-outline', route: '/pharmacy',           color: '#3880ff', description: 'Sales & billing' },
+    { label: 'Laboratory',       icon: 'flask-outline',      route: '/lab',                color: '#2dd36f', description: 'Tests & results' },
   ],
   PHARMACIST: [
     { label: 'Patients',   icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
@@ -72,8 +76,9 @@ const ALL_QUICK_ACTIONS: Record<string, QuickAction[]> = {
     { label: 'Pharmacy POS', icon: 'storefront-outline', route: '/pharmacy',  color: '#3880ff', description: 'Sales & billing' },
   ],
   LAB_TECH: [
-    { label: 'Patients', icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
-    { label: 'Doctors',  icon: 'medical-outline', route: '/doctors',    color: '#92949c', description: 'View doctor profiles' },
+    { label: 'Patients',    icon: 'people-outline',  route: '/patients/1', color: '#ffc409', description: 'View patient records' },
+    { label: 'Doctors',     icon: 'medical-outline', route: '/doctors',    color: '#92949c', description: 'View doctor profiles' },
+    { label: 'Laboratory',  icon: 'flask-outline',   route: '/lab',        color: '#2dd36f', description: 'Tests & results' },
   ],
 };
 
@@ -126,6 +131,7 @@ export class HomePage {
       listOutline,
       medicalOutline,
       peopleCircleOutline,
+      flaskOutline,
     });
   }
 

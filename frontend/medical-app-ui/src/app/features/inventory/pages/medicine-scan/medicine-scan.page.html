@@ -1,0 +1,129 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Scan Medicine</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-segment [value]="activeTab" (ionChange)="onSegmentChange($event)" style="margin: 8px;">
+    <ion-segment-button value="barcode">
+      <ion-icon name="barcode-outline"></ion-icon>
+      <ion-label>Barcode</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="label">
+      <ion-icon name="camera-outline"></ion-icon>
+      <ion-label>Label Photo</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Barcode Tab -->
+  <div *ngIf="activeTab === 'barcode'" class="tab-content ion-padding">
+
+    <!-- Scanner -->
+    <div *ngIf="!foundMedicine && !notFoundBarcode && !scanning" class="scanner-wrapper">
+      <zxing-scanner
+        *ngIf="scannerEnabled"
+        [enable]="scannerEnabled"
+        (scanSuccess)="onBarcodeScanned($event)">
+      </zxing-scanner>
+      <p class="scan-hint">Point camera at barcode to scan automatically</p>
+    </div>
+
+    <!-- Scanning spinner -->
+    <div *ngIf="scanning" class="center-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Looking up barcode...</p>
+    </div>
+
+    <!-- Found medicine -->
+    <ion-card *ngIf="foundMedicine" class="result-card">
+      <ion-card-header>
+        <ion-chip color="success" style="margin-bottom: 8px;">Found in inventory</ion-chip>
+        <ion-card-title>{{ foundMedicine.name }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p *ngIf="foundMedicine.genericName"><strong>Generic:</strong> {{ foundMedicine.genericName }}</p>
+        <p *ngIf="foundMedicine.manufacturer"><strong>Manufacturer:</strong> {{ foundMedicine.manufacturer }}</p>
+        <p *ngIf="foundMedicine.category"><strong>Category:</strong> {{ foundMedicine.category }}</p>
+        <p *ngIf="foundMedicine.unitPrice"><strong>Price:</strong> ₹{{ foundMedicine.unitPrice }}</p>
+        <p *ngIf="foundMedicine.barcode"><strong>Barcode:</strong> {{ foundMedicine.barcode }}</p>
+        <ion-button expand="block" fill="outline" (click)="resetBarcode()" style="margin-top: 12px;">
+          <ion-icon name="scan-outline" slot="start"></ion-icon>
+          Scan Another
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Not found -->
+    <ion-card *ngIf="notFoundBarcode" class="result-card">
+      <ion-card-header>
+        <ion-chip color="warning" style="margin-bottom: 8px;">Not in inventory</ion-chip>
+        <ion-card-title>Barcode: {{ notFoundBarcode }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p style="color: var(--ion-color-medium);">This barcode is not registered. Add it as a new medicine?</p>
+        <ion-button expand="block" (click)="addNotFound()" style="margin-top: 12px;">
+          Add New Medicine
+        </ion-button>
+        <ion-button expand="block" fill="outline" (click)="resetBarcode()" style="margin-top: 8px;">
+          <ion-icon name="scan-outline" slot="start"></ion-icon>
+          Scan Again
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Manual fallback -->
+    <ion-card class="manual-card">
+      <ion-card-content>
+        <p style="font-weight: 600; margin-bottom: 8px;">Or enter barcode manually</p>
+        <ion-item lines="none" style="--padding-start: 0;">
+          <ion-input
+            [(ngModel)]="manualBarcode"
+            placeholder="Enter barcode number"
+            (keyup.enter)="lookupManual()">
+          </ion-input>
+          <ion-button slot="end" fill="clear" (click)="lookupManual()">
+            <ion-icon name="search-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Label Photo Tab -->
+  <div *ngIf="activeTab === 'label'" class="tab-content ion-padding">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Scan Medicine Label</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p style="color: var(--ion-color-medium); margin-bottom: 16px;">
+          Take a photo of the medicine packaging. AI will extract details and pre-fill the form.
+        </p>
+
+        <div class="upload-area" (click)="labelInput.click()">
+          <img *ngIf="labelPreviewUrl" [src]="labelPreviewUrl" class="preview-image" alt="Label" />
+          <div *ngIf="!labelPreviewUrl" class="upload-placeholder">
+            <ion-icon name="camera-outline" class="upload-icon"></ion-icon>
+            <p>Tap to take photo or select image</p>
+          </div>
+          <input #labelInput type="file" accept="image/*" capture="environment" hidden (change)="onLabelFileSelected($event)" />
+        </div>
+
+        <ion-button
+          expand="block"
+          [disabled]="!selectedLabelFile || processingLabel"
+          (click)="processLabel()"
+          style="margin-top: 16px;">
+          <ion-spinner *ngIf="processingLabel" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!processingLabel" name="scan-outline" slot="start"></ion-icon>
+          {{ processingLabel ? 'Processing...' : 'Extract & Fill Form' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+</ion-content>

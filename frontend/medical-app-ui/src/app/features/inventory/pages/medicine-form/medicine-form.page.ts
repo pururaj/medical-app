@@ -53,6 +53,19 @@ export class MedicineFormPage implements OnInit {
     this.buildForm();
     if (this.isEditMode && this.medicineId) {
       this.loadMedicine(this.medicineId);
+    } else {
+      // Pre-fill from queryParams (barcode/label scan redirect)
+      const qp = this.route.snapshot.queryParams;
+      const prefill: any = {};
+      if (qp['name']) prefill['name'] = qp['name'];
+      if (qp['genericName']) prefill['genericName'] = qp['genericName'];
+      if (qp['manufacturer']) prefill['manufacturer'] = qp['manufacturer'];
+      if (qp['category']) prefill['category'] = qp['category'];
+      if (qp['unit']) prefill['unit'] = qp['unit'];
+      if (qp['barcode']) prefill['barcode'] = qp['barcode'];
+      if (Object.keys(prefill).length > 0) {
+        this.form.patchValue(prefill);
+      }
     }
   }
 
@@ -65,7 +78,8 @@ export class MedicineFormPage implements OnInit {
       description: [''],
       unit: ['', Validators.required],
       unitPrice: [null, [Validators.required, Validators.min(0)]],
-      reorderLevel: [10, [Validators.required, Validators.min(0)]]
+      reorderLevel: [10, [Validators.required, Validators.min(0)]],
+      barcode: ['']
     });
   }
 
@@ -81,7 +95,8 @@ export class MedicineFormPage implements OnInit {
           description: m.description ?? '',
           unit: m.unit,
           unitPrice: m.unitPrice,
-          reorderLevel: m.reorderLevel
+          reorderLevel: m.reorderLevel,
+          barcode: m.barcode ?? ''
         });
       },
       error: () => this.router.navigate(['/inventory'])

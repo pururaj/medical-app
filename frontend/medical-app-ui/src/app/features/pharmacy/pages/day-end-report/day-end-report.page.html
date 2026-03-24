@@ -1,0 +1,175 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/pharmacy/history"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Day End Report</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="printReport()">
+        <ion-icon name="print-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-refresher slot="fixed" (ionRefresh)="loadReport($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Date Picker -->
+  <ion-card>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>Report Date</ion-label>
+        <input type="date"
+          [value]="selectedDate"
+          (change)="onDateChange($event)"
+          style="border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:14px;">
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="loading" style="text-align:center; padding: 32px;">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p style="color:#888; margin-top:8px;">Generating report...</p>
+  </div>
+
+  <ng-container *ngIf="!loading && report">
+
+    <!-- Generated At -->
+    <p style="text-align:right; color:#999; font-size:12px; margin: -4px 0 8px;">
+      Generated: {{ report.generatedAt }}
+    </p>
+
+    <!-- Summary Cards Row 1 -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <ion-card style="margin:0;">
+        <ion-card-content style="text-align:center;">
+          <ion-icon name="trending-up-outline" color="success" style="font-size:28px;"></ion-icon>
+          <div style="font-size:22px; font-weight:700; color:#2dd36f;">
+            ₹{{ report.totalRevenue | number:'1.2-2' }}
+          </div>
+          <div style="font-size:12px; color:#666;">Total Revenue</div>
+          <ion-badge color="success">{{ report.totalSalesCount }} sales</ion-badge>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card style="margin:0;">
+        <ion-card-content style="text-align:center;">
+          <ion-icon name="trending-up-outline" color="primary" style="font-size:28px;"></ion-icon>
+          <div style="font-size:22px; font-weight:700; color:#3880ff;">
+            ₹{{ report.netRevenue | number:'1.2-2' }}
+          </div>
+          <div style="font-size:12px; color:#666;">Net Revenue</div>
+          <ion-badge color="primary">after returns</ion-badge>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card style="margin:0;">
+        <ion-card-content style="text-align:center;">
+          <ion-icon name="arrow-down-outline" color="danger" style="font-size:28px;"></ion-icon>
+          <div style="font-size:22px; font-weight:700; color:#eb445a;">
+            ₹{{ report.totalRefundAmount | number:'1.2-2' }}
+          </div>
+          <div style="font-size:12px; color:#666;">Total Refunds</div>
+          <ion-badge color="danger">{{ report.totalReturnsCount }} returns</ion-badge>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card style="margin:0;">
+        <ion-card-content style="text-align:center;">
+          <ion-icon name="swap-horizontal-outline" color="tertiary" style="font-size:28px;"></ion-icon>
+          <div style="font-size:22px; font-weight:700; color:#7044ff;">
+            ₹{{ report.totalExchangeAmount | number:'1.2-2' }}
+          </div>
+          <div style="font-size:12px; color:#666;">Exchanges</div>
+          <ion-badge color="tertiary">{{ report.totalExchangesCount }} exchanges</ion-badge>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Payment Breakdown -->
+    <ion-card *ngIf="paymentMethods.length > 0">
+      <ion-card-header>
+        <ion-card-title>Payment Method Breakdown</ion-card-title>
+      </ion-card-header>
+      <ion-card-content style="padding: 0;">
+        <ion-item *ngFor="let method of paymentMethods">
+          <ion-icon [name]="paymentIcons[method] || 'cash-outline'" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h3>{{ method }}</h3>
+            <p>{{ paymentCount(method) }} transaction{{ paymentCount(method) !== 1 ? 's' : '' }}</p>
+          </ion-label>
+          <div slot="end" style="text-align:right;">
+            <strong>₹{{ paymentAmount(method) | number:'1.2-2' }}</strong>
+          </div>
+        </ion-item>
+        <div *ngIf="paymentMethods.length === 0" style="padding:16px; text-align:center; color:#888;">
+          No sales recorded for this date
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Top Medicines -->
+    <ion-card *ngIf="report.topMedicines && report.topMedicines.length > 0">
+      <ion-card-header>
+        <ion-card-title>Top Selling Medicines</ion-card-title>
+      </ion-card-header>
+      <ion-card-content style="padding: 0;">
+        <ion-item *ngFor="let m of report.topMedicines; let i = index">
+          <ion-badge slot="start"
+            [color]="i === 0 ? 'warning' : i === 1 ? 'medium' : 'light'"
+            style="min-width:24px; text-align:center;">
+            {{ i + 1 }}
+          </ion-badge>
+          <ion-label>
+            <h3>{{ m.medicineName }}</h3>
+            <p>Qty sold: {{ m.totalQuantity }}</p>
+          </ion-label>
+          <div slot="end" style="text-align:right;">
+            <strong>₹{{ m.totalAmount | number:'1.2-2' }}</strong>
+          </div>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Hourly Sales Chart -->
+    <ion-card *ngIf="report.hourlySales && report.hourlySales.length > 0">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="time-outline" style="vertical-align:middle; margin-right:6px;"></ion-icon>
+          Hourly Sales Breakdown
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngFor="let h of report.hourlySales" style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:3px;">
+            <span style="color:#555; min-width:50px;">{{ h.label }}</span>
+            <span style="color:#888;">{{ h.salesCount }} sale{{ h.salesCount !== 1 ? 's' : '' }}</span>
+            <strong>₹{{ h.revenue | number:'1.2-2' }}</strong>
+          </div>
+          <div style="background:#f0f0f0; border-radius:4px; height:8px; overflow:hidden;">
+            <div [style.width.%]="barWidth(+h.revenue)"
+                 style="background:#3880ff; height:100%; border-radius:4px; transition:width 0.4s;"></div>
+          </div>
+        </div>
+        <div *ngIf="report.hourlySales.length === 0" style="text-align:center; color:#888; padding:8px;">
+          No hourly data available
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- No Data -->
+    <ion-card *ngIf="report.totalSalesCount === 0 && report.totalReturnsCount === 0">
+      <ion-card-content style="text-align:center; padding:32px;">
+        <ion-icon name="trending-up-outline" style="font-size:48px; color:#ccc;"></ion-icon>
+        <p style="color:#999; margin-top:8px;">No transactions recorded for {{ selectedDate }}</p>
+      </ion-card-content>
+    </ion-card>
+
+  </ng-container>
+
+</ion-content>

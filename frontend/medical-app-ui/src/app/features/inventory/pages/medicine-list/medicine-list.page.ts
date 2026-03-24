@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonButton,
   IonSearchbar, IonCard, IonCardContent, IonChip, IonLabel,
@@ -14,7 +14,7 @@ import { addIcons } from 'ionicons';
 import {
   addOutline, trashOutline, pencilOutline, medkitOutline,
   alertCircleOutline, cubeOutline, filterOutline, searchOutline,
-  layersOutline, warningOutline
+  layersOutline, warningOutline, documentTextOutline, scanOutline
 } from 'ionicons/icons';
 import { InventoryService, MedicineDto, InventorySummaryDto } from '../../../../core/services/inventory.service';
 
@@ -25,7 +25,7 @@ import { InventoryService, MedicineDto, InventorySummaryDto } from '../../../../
   standalone: true,
   imports: [
     FormsModule,
-    CommonModule, DecimalPipe,
+    CommonModule, DecimalPipe, RouterLink,
     IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonButton,
     IonSearchbar, IonCard, IonCardContent, IonChip, IonLabel,
     IonSpinner, IonText, IonSelect, IonSelectOption, IonRefresher,
@@ -49,7 +49,7 @@ export class MedicineListPage implements OnInit {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController
   ) {
-    addIcons({ addOutline, trashOutline, pencilOutline, medkitOutline, alertCircleOutline, cubeOutline, filterOutline, searchOutline, layersOutline, warningOutline });
+    addIcons({ addOutline, trashOutline, pencilOutline, medkitOutline, alertCircleOutline, cubeOutline, filterOutline, searchOutline, layersOutline, warningOutline, documentTextOutline, scanOutline });
   }
 
   editMedicine(medicine: MedicineDto, slidingItem: IonItemSliding) {

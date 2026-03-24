@@ -1,8 +1,6 @@
 package com.medical.inventory.service;
 
-import com.medical.inventory.dto.CreateMedicineRequest;
-import com.medical.inventory.dto.MedicineDto;
-import com.medical.inventory.dto.UpdateMedicineRequest;
+import com.medical.inventory.dto.*;
 import com.medical.inventory.entity.Medicine;
 import com.medical.inventory.repository.InventoryStockRepository;
 import com.medical.inventory.repository.MedicineRepository;
@@ -15,12 +13,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class MedicineService {
 
     private final MedicineRepository medicineRepo;
     private final InventoryStockRepository stockRepo;
+    private final InventoryService inventoryService;
 
     @Transactional(readOnly = true)
     public PageResponse<MedicineDto> getMedicines(String search, String category, int page, int size) {
@@ -71,6 +73,7 @@ public class MedicineService {
                 .description(request.getDescription())
                 .unit(Medicine.Unit.valueOf(request.getUnit().toUpperCase()))
                 .unitPrice(request.getUnitPrice())
+                .barcode(request.getBarcode())
                 .reorderLevel(request.getReorderLevel() != null ? request.getReorderLevel() : 10)
                 .active(true)
                 .build();
@@ -106,6 +109,57 @@ public class MedicineService {
     }
 
     @Transactional
+    public List<MedicineDto> bulkCreate(BulkCreateRequest request) {
+        List<MedicineDto> results = new ArrayList<>();
+        for (ScannedMedicineDto item : request.getMedicines()) {
+            if (item.getName() == null || item.getName().isBlank()) continue;
+
+            Medicine medicine;
+            if (medicineRepo.existsByNameIgnoreCase(item.getName())) {
+                medicine = medicineRepo.findAll().stream()
+                        .filter(m -> m.getName().equalsIgnoreCase(item.getName()))
+                        .findFirst()
+                        .orElseThrow();
+            } else {
+                Medicine.Category category = Medicine.Category.OTHER;
+                if (item.getCategory() != null) {
+                    try { category = Medicine.Category.valueOf(item.getCategory().toUpperCase()); }
+                    catch (IllegalArgumentException ignored) {}
+                }
+                Medicine.Unit unit = Medicine.Unit.TABLET;
+                if (item.getUnit() != null) {
+                    try { unit = Medicine.Unit.valueOf(item.getUnit().toUpperCase()); }
+                    catch (IllegalArgumentException ignored) {}
+                }
+                medicine = Medicine.builder()
+                        .name(item.getName())
+                        .genericName(item.getGenericName())
+                        .category(category)
+                        .manufacturer(item.getManufacturer())
+                        .unit(unit)
+                        .unitPrice(item.getUnitPrice())
+                        .barcode(item.getBarcode())
+                        .active(true)
+                        .build();
+                medicine = medicineRepo.save(medicine);
+            }
+
+            if (item.getQuantity() > 0) {
+                StockAdjustmentRequest stockReq = new StockAdjustmentRequest();
+                stockReq.setMedicineId(medicine.getId());
+                stockReq.setTransactionType("PURCHASE");
+                stockReq.setQuantity(item.getQuantity());
+                stockReq.setNotes("Bulk import from bill scan");
+                stockReq.setPerformedBy(request.getPerformedBy());
+                inventoryService.adjustStock(stockReq);
+            }
+
+            results.add(toDto(medicine));
+        }
+        return results;
+    }
+
+    @Transactional
     public void deleteMedicine(Long id) {
         Medicine medicine = findById(id);
         medicine.setActive(false);
@@ -123,6 +177,7 @@ public class MedicineService {
                 .id(m.getId())
                 .name(m.getName())
                 .genericName(m.getGenericName())
+                .barcode(m.getBarcode())
                 .category(m.getCategory() != null ? m.getCategory().name() : null)
                 .manufacturer(m.getManufacturer())
                 .description(m.getDescription())

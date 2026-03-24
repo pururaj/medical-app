@@ -31,4 +31,6 @@ public class CreateMedicineRequest {
 
     @Min(value = 0, message = "Reorder level must be non-negative")
     private Integer reorderLevel = 10;
+
+    private String barcode;
 }

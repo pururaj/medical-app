@@ -1,0 +1,245 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Book Appointment</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- Step Indicator -->
+  <ion-card class="step-indicator">
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="3" class="step-col">
+            <div [class.active]="currentStep === 'doctor'" [class.completed]="currentStep !== 'doctor' && selectedDoctor" class="step-circle">
+              <ion-icon name="person-outline"></ion-icon>
+            </div>
+            <ion-text class="step-label">Doctor</ion-text>
+          </ion-col>
+          <ion-col size="3" class="step-col">
+            <div [class.active]="currentStep === 'date'" [class.completed]="selectedDate" class="step-circle">
+              <ion-icon name="calendar-outline"></ion-icon>
+            </div>
+            <ion-text class="step-label">Date</ion-text>
+          </ion-col>
+          <ion-col size="3" class="step-col">
+            <div [class.active]="currentStep === 'time'" [class.completed]="selectedTime" class="step-circle">
+              <ion-icon name="time-outline"></ion-icon>
+            </div>
+            <ion-text class="step-label">Time</ion-text>
+          </ion-col>
+          <ion-col size="3" class="step-col">
+            <div [class.active]="currentStep === 'details' || currentStep === 'confirm'" [class.completed]="reasonForVisit" class="step-circle">
+              <ion-icon name="medkit-outline"></ion-icon>
+            </div>
+            <ion-text class="step-label">Details</ion-text>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Step 1: Select Doctor -->
+  <div *ngIf="currentStep === 'doctor'">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Select a Doctor</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="12" size-md="6" *ngFor="let doctor of doctors">
+              <ion-card button (click)="selectDoctor(doctor)" class="doctor-card">
+                <ion-card-content>
+                  <h3>{{ doctor.name }}</h3>
+                  <p class="specialization">{{ doctor.specialization }}</p>
+                  <p class="fee">Consultation Fee: ₹{{ doctor.consultationFee }}</p>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Step 2: Select Date -->
+  <div *ngIf="currentStep === 'date'">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Select Date</ion-card-title>
+        <ion-note>Appointment with {{ selectedDoctor?.name }}</ion-note>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-datetime
+          presentation="date"
+          [min]="minDate"
+          [max]="maxDate"
+          (ionChange)="onDateChange($event)"
+          [value]="selectedDate"
+        ></ion-datetime>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Step 3: Select Time Slot -->
+  <div *ngIf="currentStep === 'time'">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Select Time Slot</ion-card-title>
+        <ion-note>{{ formatDate(selectedDate) }}</ion-note>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="loadingSlots" class="loading-container">
+          <ion-spinner></ion-spinner>
+          <p>Loading available slots...</p>
+        </div>
+
+        <div *ngIf="!loadingSlots && availableSlots.length === 0" class="no-slots">
+          <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+          <p>No available slots for this date</p>
+          <ion-button fill="outline" (click)="currentStep = 'date'">Choose Another Date</ion-button>
+        </div>
+
+        <ion-grid *ngIf="!loadingSlots && availableSlots.length > 0">
+          <ion-row>
+            <ion-col size="6" size-md="4" *ngFor="let slot of availableSlots">
+              <ion-chip
+                [color]="slot.available ? (selectedTime === slot.time ? 'primary' : 'medium') : 'light'"
+                [disabled]="!slot.available"
+                (click)="selectTimeSlot(slot)"
+                class="time-slot"
+              >
+                <ion-label>{{ formatTime(slot.time) }}</ion-label>
+                <ion-icon
+                  *ngIf="slot.available"
+                  [name]="selectedTime === slot.time ? 'checkmark-circle-outline' : 'time-outline'"
+                ></ion-icon>
+              </ion-chip>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Step 4: Enter Details -->
+  <div *ngIf="currentStep === 'details'">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Appointment Details</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Appointment Type</ion-label>
+          <ion-select [(ngModel)]="appointmentType">
+            <ion-select-option value="NEW_VISIT">New Visit</ion-select-option>
+            <ion-select-option value="FOLLOW_UP">Follow-up</ion-select-option>
+            <ion-select-option value="EMERGENCY">Emergency</ion-select-option>
+            <ion-select-option value="TELEMEDICINE">Telemedicine</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Reason for Visit *</ion-label>
+          <ion-textarea
+            [(ngModel)]="reasonForVisit"
+            placeholder="e.g., Regular checkup, Follow-up consultation"
+            rows="3"
+            maxlength="500"
+          ></ion-textarea>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Symptoms (Optional)</ion-label>
+          <ion-textarea
+            [(ngModel)]="symptoms"
+            placeholder="Describe your symptoms"
+            rows="4"
+            maxlength="1000"
+          ></ion-textarea>
+        </ion-item>
+
+        <ion-button expand="block" (click)="proceedToConfirm()" class="proceed-btn">
+          Review Booking
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Step 5: Confirm Booking -->
+  <div *ngIf="currentStep === 'confirm'">
+    <ion-card *ngIf="!bookingSuccess">
+      <ion-card-header>
+        <ion-card-title>Confirm Booking</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="confirmation-details">
+          <div class="detail-row">
+            <ion-label>Doctor</ion-label>
+            <ion-text><strong>{{ selectedDoctor?.name }}</strong></ion-text>
+          </div>
+          <div class="detail-row">
+            <ion-label>Specialization</ion-label>
+            <ion-text>{{ selectedDoctor?.specialization }}</ion-text>
+          </div>
+          <div class="detail-row">
+            <ion-label>Date</ion-label>
+            <ion-text>{{ formatDate(selectedDate) }}</ion-text>
+          </div>
+          <div class="detail-row">
+            <ion-label>Time</ion-label>
+            <ion-text>{{ formatTime(selectedTime) }}</ion-text>
+          </div>
+          <div class="detail-row">
+            <ion-label>Type</ion-label>
+            <ion-text>{{ getAppointmentTypeLabel(appointmentType) }}</ion-text>
+          </div>
+          <div class="detail-row">
+            <ion-label>Consultation Fee</ion-label>
+            <ion-text><strong>₹{{ selectedDoctor?.consultationFee }}</strong></ion-text>
+          </div>
+          <div class="detail-row">
+            <ion-label>Reason</ion-label>
+            <ion-text>{{ reasonForVisit }}</ion-text>
+          </div>
+          <div class="detail-row" *ngIf="symptoms">
+            <ion-label>Symptoms</ion-label>
+            <ion-text>{{ symptoms }}</ion-text>
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          (click)="confirmBooking()"
+          [disabled]="isBooking"
+          class="confirm-btn"
+        >
+          <ion-spinner *ngIf="isBooking" name="crescent"></ion-spinner>
+          <span *ngIf="!isBooking">Confirm Appointment</span>
+        </ion-button>
+
+        <ion-button expand="block" fill="outline" (click)="goBack()" [disabled]="isBooking">
+          Edit Details
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Success Message -->
+    <ion-card *ngIf="bookingSuccess" color="success">
+      <ion-card-content class="success-content">
+        <ion-icon name="checkmark-circle-outline" class="success-icon"></ion-icon>
+        <h2>Appointment Booked Successfully!</h2>
+        <p>You will receive a confirmation shortly.</p>
+        <ion-button fill="outline" color="light" (click)="resetBooking()">
+          Book Another Appointment
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

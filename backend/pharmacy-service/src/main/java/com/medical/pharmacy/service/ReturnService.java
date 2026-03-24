@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -60,12 +61,16 @@ public class ReturnService {
             throw new IllegalStateException("This sale has already been fully returned");
         }
 
+        boolean isExchange = "EXCHANGE".equalsIgnoreCase(req.getTransactionType());
+
         SaleReturn saleReturn = SaleReturn.builder()
                 .originalSale(originalSale)
                 .returnReason(req.getReturnReason())
                 .processedBy(req.getProcessedBy())
+                .transactionType(isExchange ? SaleReturn.TransactionType.EXCHANGE : SaleReturn.TransactionType.RETURN)
                 .build();
 
+        // Build return items
         List<SaleReturnItem> returnItems = req.getItems().stream().map(i -> {
             BigDecimal refund = i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantityReturned()));
             return SaleReturnItem.builder()
@@ -86,6 +91,30 @@ public class ReturnService {
         saleReturn.setTotalRefundAmount(totalRefund);
         saleReturn.getReturnItems().addAll(returnItems);
 
+        // Build exchange items (only for EXCHANGE type)
+        BigDecimal exchangeAmount = BigDecimal.ZERO;
+        if (isExchange && req.getExchangeItems() != null && !req.getExchangeItems().isEmpty()) {
+            List<SaleExchangeItem> exchangeItems = new ArrayList<>();
+            for (ExchangeItemRequest ei : req.getExchangeItems()) {
+                BigDecimal lineTotal = ei.getUnitPrice().multiply(BigDecimal.valueOf(ei.getQuantity()));
+                exchangeItems.add(SaleExchangeItem.builder()
+                        .saleReturn(saleReturn)
+                        .medicineId(ei.getMedicineId())
+                        .medicineName(ei.getMedicineName())
+                        .medicineUnit(ei.getMedicineUnit())
+                        .quantity(ei.getQuantity())
+                        .unitPrice(ei.getUnitPrice())
+                        .lineTotal(lineTotal)
+                        .build());
+                exchangeAmount = exchangeAmount.add(lineTotal);
+            }
+            saleReturn.getExchangeItems().addAll(exchangeItems);
+        }
+
+        saleReturn.setExchangeAmount(exchangeAmount);
+        // Positive = net refund to customer; Negative = customer pays the difference
+        saleReturn.setNetSettlement(totalRefund.subtract(exchangeAmount));
+
         SaleReturn saved = returnRepo.save(saleReturn);
 
         // Generate return number
@@ -95,8 +124,6 @@ public class ReturnService {
         saved = returnRepo.save(saved);
 
         // Update original sale status
-        long totalReturns = returnRepo.countByOriginalSaleId(originalSale.getId());
-        // Simple heuristic: if any return exists, mark as PARTIALLY_RETURNED; full return logic can be enhanced later
         if (originalSale.getStatus() != Sale.SaleStatus.RETURNED) {
             originalSale.setStatus(Sale.SaleStatus.PARTIALLY_RETURNED);
             saleRepo.save(originalSale);
@@ -112,9 +139,15 @@ public class ReturnService {
                 .originalSaleId(r.getOriginalSale().getId())
                 .originalSaleNumber(r.getOriginalSale().getSaleNumber())
                 .returnReason(r.getReturnReason())
+                .transactionType(r.getTransactionType() != null ? r.getTransactionType().name() : "RETURN")
                 .totalRefundAmount(r.getTotalRefundAmount())
+                .exchangeAmount(r.getExchangeAmount())
+                .netSettlement(r.getNetSettlement())
                 .processedBy(r.getProcessedBy())
                 .returnItems(r.getReturnItems().stream().map(this::toItemDto).toList())
+                .exchangeItems(r.getExchangeItems() != null
+                        ? r.getExchangeItems().stream().map(this::toExchangeItemDto).toList()
+                        : List.of())
                 .createdAt(r.getCreatedAt())
                 .build();
     }
@@ -128,6 +161,18 @@ public class ReturnService {
                 .quantityReturned(i.getQuantityReturned())
                 .unitPrice(i.getUnitPrice())
                 .refundAmount(i.getRefundAmount())
+                .build();
+    }
+
+    private ExchangeItemDto toExchangeItemDto(SaleExchangeItem i) {
+        return ExchangeItemDto.builder()
+                .id(i.getId())
+                .medicineId(i.getMedicineId())
+                .medicineName(i.getMedicineName())
+                .medicineUnit(i.getMedicineUnit())
+                .quantity(i.getQuantity())
+                .unitPrice(i.getUnitPrice())
+                .lineTotal(i.getLineTotal())
                 .build();
     }
 }

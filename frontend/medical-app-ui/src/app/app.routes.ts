@@ -46,4 +46,9 @@ export const routes: Routes = [
     loadChildren: () => import('./features/pharmacy/pharmacy.routes').then(m => m.routes),
     canActivate: [authGuard]
   },
+  {
+    path: 'lab',
+    loadChildren: () => import('./features/laboratory/laboratory.routes').then(m => m.routes),
+    canActivate: [authGuard]
+  },
 ];

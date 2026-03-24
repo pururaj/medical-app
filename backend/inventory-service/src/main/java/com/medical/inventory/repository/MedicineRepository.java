@@ -8,10 +8,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface MedicineRepository extends JpaRepository<Medicine, Long> {
 
     boolean existsByNameIgnoreCase(String name);
+
+    Optional<Medicine> findByBarcode(String barcode);
 
     @Query("""
             SELECT m FROM Medicine m
