@@ -1,0 +1,82 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()"><ion-icon name="arrow-back-outline"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Sale Invoices (GST)</ion-title>
+      <ion-buttons slot="end">
+      <ion-button [routerLink]="['/home']" title="Home">
+        <ion-icon slot="icon-only" name="home-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Month/Year Selector -->
+  <ion-card>
+    <ion-card-content>
+      <div style="display:flex;gap:8px;">
+        <ion-item lines="none" style="flex:1">
+          <ion-label>Month</ion-label>
+          <ion-select [(ngModel)]="selectedMonth" (ionChange)="loadSales()">
+            <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item lines="none" style="flex:1">
+          <ion-label>Year</ion-label>
+          <ion-select [(ngModel)]="selectedYear" (ionChange)="loadSales()">
+            <ion-select-option *ngFor="let y of years" [value]="y">{{ y }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="loading && sales.length === 0" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <div *ngIf="!loading && sales.length === 0" class="ion-text-center ion-padding">
+    <ion-icon name="receipt-outline" size="large" color="medium"></ion-icon>
+    <p><ion-text color="medium">No sales found for {{ monthLabel }} {{ selectedYear }}.</ion-text></p>
+  </div>
+
+  <ion-card *ngFor="let sale of sales" class="sale-card">
+    <ion-card-content>
+      <div class="sale-header" (click)="toggleExpand(sale.id)">
+        <div>
+          <strong>{{ sale.saleNumber }}</strong>
+          <div *ngIf="sale.customerName"><ion-text color="medium">{{ sale.customerName }}</ion-text></div>
+          <div><ion-text color="medium" style="font-size:12px">{{ sale.createdAt | date:'dd MMM yyyy, hh:mm a' }}</ion-text></div>
+        </div>
+        <div class="sale-right">
+          <div class="sale-total">₹{{ sale.totalAmount | number:'1.2-2' }}</div>
+          <ion-chip [color]="sale.status === 'COMPLETED' ? 'success' : 'medium'" size="small">{{ sale.status }}</ion-chip>
+          <ion-chip color="primary" size="small">{{ sale.paymentMethod }}</ion-chip>
+          <ion-icon [name]="expandedId === sale.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </div>
+      </div>
+
+      <!-- Expanded GST breakdown -->
+      <div *ngIf="expandedId === sale.id" class="tax-breakdown">
+        <div class="tax-row"><span>Taxable Amount</span><span>₹{{ sale.taxableAmount | number:'1.2-2' }}</span></div>
+        <div class="tax-row"><span>CGST ({{ sale.gstRate / 2 }}%)</span><span>₹{{ sale.cgstAmount | number:'1.2-2' }}</span></div>
+        <div class="tax-row"><span>SGST ({{ sale.gstRate / 2 }}%)</span><span>₹{{ sale.sgstAmount | number:'1.2-2' }}</span></div>
+        <div class="tax-row"><span>IGST</span><span>₹{{ sale.igstAmount | number:'1.2-2' }}</span></div>
+        <div class="tax-row total"><span><strong>Total</strong></span><span><strong>₹{{ sale.totalAmount | number:'1.2-2' }}</strong></span></div>
+
+        <div *ngFor="let item of sale.items" class="item-row">
+          <span>{{ item.medicineName }}</span>
+          <span>{{ item.quantity }} × ₹{{ item.unitPrice | number:'1.2-2' }} &#64; {{ item.gstRate }}% = ₹{{ item.lineTotal | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-infinite-scroll *ngIf="hasMore" (ionInfinite)="loadMore($event)">
+    <ion-infinite-scroll-content></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>

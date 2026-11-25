@@ -1,0 +1,163 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()"><ion-icon name="arrow-back-outline"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Purchase Invoices</ion-title>
+    <ion-buttons slot="end">
+      <ion-button [routerLink]="['/home']" title="Home">
+        <ion-icon slot="icon-only" name="home-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button (click)="openForm()"><ion-icon name="add-outline"></ion-icon></ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-searchbar
+    [(ngModel)]="supplierFilter"
+    placeholder="Filter by supplier..."
+    (ionInput)="loadInvoices()"
+    debounce="400">
+  </ion-searchbar>
+
+  <div *ngIf="loading && invoices.length === 0" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <div *ngIf="!loading && invoices.length === 0" class="ion-text-center ion-padding">
+    <ion-icon name="receipt-outline" size="large" color="medium"></ion-icon>
+    <p><ion-text color="medium">No purchase invoices found.</ion-text></p>
+    <ion-button (click)="openForm()">Add Invoice</ion-button>
+  </div>
+
+  <ion-card *ngFor="let inv of invoices" class="invoice-card">
+    <ion-card-content>
+      <div class="inv-header" (click)="toggleExpand(inv.id)">
+        <div>
+          <strong>{{ inv.invoiceNumber }}</strong>
+          <div><ion-text color="medium">{{ inv.supplierName }}</ion-text></div>
+          <div *ngIf="inv.supplierGstin"><ion-text color="medium" style="font-size:12px">GSTIN: {{ inv.supplierGstin }}</ion-text></div>
+        </div>
+        <div class="inv-right">
+          <div class="inv-date">{{ inv.invoiceDate | date:'dd MMM yyyy' }}</div>
+          <div class="inv-total">₹{{ inv.totalAmount | number:'1.2-2' }}</div>
+          <ion-chip color="warning" size="small">{{ inv.items?.length ?? 0 }} items</ion-chip>
+          <ion-icon [name]="expandedId === inv.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </div>
+      </div>
+
+      <!-- Expanded tax breakdown -->
+      <div *ngIf="expandedId === inv.id" class="tax-breakdown">
+        <div class="tax-row"><span>Taxable Amount</span><span>₹{{ inv.taxableAmount | number:'1.2-2' }}</span></div>
+        <div class="tax-row"><span>CGST</span><span>₹{{ inv.cgstAmount | number:'1.2-2' }}</span></div>
+        <div class="tax-row"><span>SGST</span><span>₹{{ inv.sgstAmount | number:'1.2-2' }}</span></div>
+        <div class="tax-row"><span>IGST</span><span>₹{{ inv.igstAmount | number:'1.2-2' }}</span></div>
+        <div class="tax-row total"><span><strong>Total</strong></span><span><strong>₹{{ inv.totalAmount | number:'1.2-2' }}</strong></span></div>
+
+        <div *ngFor="let item of inv.items" class="item-row">
+          <span>{{ item.medicineName }}</span>
+          <span>{{ item.quantity }} × ₹{{ item.unitPrice | number:'1.2-2' }} &#64; {{ item.gstRate }}% GST = ₹{{ item.lineTotal | number:'1.2-2' }}</span>
+          <span *ngIf="item.hsnCode" style="font-size:11px;color:gray">HSN: {{ item.hsnCode }}</span>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-infinite-scroll *ngIf="hasMore" (ionInfinite)="loadMore($event)">
+    <ion-infinite-scroll-content></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <!-- Add Invoice Form Modal -->
+  <ion-modal [isOpen]="showForm" (ionModalDidDismiss)="closeForm()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>New Purchase Invoice</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeForm()"><ion-icon name="close-outline"></ion-icon></ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <form [formGroup]="form">
+          <ion-item>
+            <ion-label position="stacked">Invoice Number *</ion-label>
+            <ion-input formControlName="invoiceNumber" placeholder="e.g. INV-2026-001"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Supplier Name *</ion-label>
+            <ion-input formControlName="supplierName" placeholder="Supplier / Distributor name"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Supplier GSTIN</ion-label>
+            <ion-input formControlName="supplierGstin" placeholder="e.g. 27AAAAA0000A1Z5"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Invoice Date *</ion-label>
+            <ion-input type="date" formControlName="invoiceDate"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Notes</ion-label>
+            <ion-input formControlName="notes" placeholder="Optional notes"></ion-input>
+          </ion-item>
+
+          <div class="items-header">
+            <strong>Items</strong>
+            <ion-button size="small" fill="outline" (click)="addItem()">
+              <ion-icon name="add-outline" slot="start"></ion-icon> Add Item
+            </ion-button>
+          </div>
+
+          <div formArrayName="items">
+            <ion-card *ngFor="let item of itemsArray.controls; let i = index" [formGroupName]="i" class="item-form-card">
+              <ion-card-content>
+                <ion-item>
+                  <ion-label position="stacked">Medicine *</ion-label>
+                  <select class="native-select" (change)="onMedicineSelect(i, $event)">
+                    <option value="">-- Select Medicine --</option>
+                    <option *ngFor="let m of medicines" [value]="m.id">{{ m.name }}</option>
+                  </select>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">HSN Code</ion-label>
+                  <ion-input formControlName="hsnCode" placeholder="HSN Code"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Quantity *</ion-label>
+                  <ion-input type="number" formControlName="quantity" min="1"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">Unit Price (₹) *</ion-label>
+                  <ion-input type="number" formControlName="unitPrice" min="0"></ion-input>
+                </ion-item>
+                <ion-item>
+                  <ion-label position="stacked">GST Rate (%)</ion-label>
+                  <select class="native-select" formControlName="gstRate">
+                    <option *ngFor="let r of GST_RATES" [value]="r">{{ r }}%</option>
+                  </select>
+                </ion-item>
+                <div class="line-total">
+                  Line Total: <strong>₹{{ itemLineTotal(i) | number:'1.2-2' }}</strong>
+                </div>
+                <ion-button color="danger" fill="clear" size="small" (click)="removeItem(i)">
+                  <ion-icon name="trash-outline" slot="start"></ion-icon> Remove
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <div class="form-actions">
+            <ion-button expand="block" (click)="submit()" [disabled]="saving">
+              <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
+              <span *ngIf="!saving">Save Invoice</span>
+            </ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

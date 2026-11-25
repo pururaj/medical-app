@@ -1,0 +1,75 @@
+.invoice-card { margin-bottom: 8px; }
+
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.inv-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.inv-date { font-size: 12px; color: var(--ion-color-medium); }
+.inv-total { font-size: 16px; font-weight: 600; color: var(--ion-color-primary); }
+
+.tax-breakdown {
+  margin-top: 12px;
+  border-top: 1px solid var(--ion-color-light-shade);
+  padding-top: 8px;
+}
+
+.tax-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--ion-color-light);
+  &.total {
+    border-top: 2px solid var(--ion-color-medium-shade);
+    margin-top: 4px;
+    padding-top: 6px;
+  }
+}
+
+.item-row {
+  margin-top: 8px;
+  font-size: 12px;
+  padding: 6px;
+  background: var(--ion-color-light);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0 4px;
+}
+
+.item-form-card { margin: 8px 0; }
+
+.native-select {
+  width: 100%;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+}
+
+.line-total {
+  padding: 8px 4px;
+  font-size: 13px;
+  color: var(--ion-color-primary);
+}
+
+.form-actions { margin-top: 16px; }

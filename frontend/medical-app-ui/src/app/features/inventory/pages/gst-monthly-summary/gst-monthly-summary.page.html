@@ -1,0 +1,193 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()"><ion-icon name="arrow-back-outline"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>GST Monthly Summary</ion-title>
+    <ion-buttons slot="end">
+      <ion-button [routerLink]="['/home']" title="Home">
+        <ion-icon slot="icon-only" name="home-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button (click)="loadSummary()"><ion-icon name="refresh-outline"></ion-icon></ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Month/Year Selector -->
+  <ion-card>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-item lines="none">
+              <ion-label>Month</ion-label>
+              <ion-select [(ngModel)]="selectedMonth" (ionChange)="loadSummary()">
+                <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-col>
+          <ion-col size="6">
+            <ion-item lines="none">
+              <ion-label>Year</ion-label>
+              <ion-select [(ngModel)]="selectedYear" (ionChange)="loadSummary()">
+                <ion-select-option *ngFor="let y of years" [value]="y">{{ y }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Purchase Summary -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="trending-down-outline" color="warning"></ion-icon>
+          Purchase (Input Tax Credit) — {{ monthLabel }} {{ selectedYear }}
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid class="gst-table">
+          <ion-row class="header-row">
+            <ion-col>Description</ion-col>
+            <ion-col class="ion-text-end">Amount (₹)</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>Taxable Amount</ion-col>
+            <ion-col class="ion-text-end">{{ purchaseSummary?.purchaseTaxableAmount | number:'1.2-2' }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>CGST</ion-col>
+            <ion-col class="ion-text-end">{{ purchaseSummary?.purchaseCgst | number:'1.2-2' }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>SGST</ion-col>
+            <ion-col class="ion-text-end">{{ purchaseSummary?.purchaseSgst | number:'1.2-2' }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>IGST</ion-col>
+            <ion-col class="ion-text-end">{{ purchaseSummary?.purchaseIgst | number:'1.2-2' }}</ion-col>
+          </ion-row>
+          <ion-row class="total-row">
+            <ion-col><strong>Total Tax (ITC)</strong></ion-col>
+            <ion-col class="ion-text-end"><strong>{{ purchaseSummary?.purchaseTotalTax | number:'1.2-2' }}</strong></ion-col>
+          </ion-row>
+          <ion-row class="grand-total-row">
+            <ion-col><strong>Grand Total</strong></ion-col>
+            <ion-col class="ion-text-end"><strong>{{ purchaseSummary?.purchaseTotalAmount | number:'1.2-2' }}</strong></ion-col>
+          </ion-row>
+          <ion-row class="meta-row">
+            <ion-col><ion-text color="medium">Invoices: {{ purchaseSummary?.purchaseInvoiceCount ?? 0 }}</ion-text></ion-col>
+            <ion-col class="ion-text-end">
+              <ion-button size="small" fill="outline" (click)="goToPurchaseInvoices()">View Invoices</ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Sale Summary -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="trending-up-outline" color="success"></ion-icon>
+          Sales (Output Tax) — {{ monthLabel }} {{ selectedYear }}
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid class="gst-table">
+          <ion-row class="header-row">
+            <ion-col>Description</ion-col>
+            <ion-col class="ion-text-end">Amount (₹)</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>Taxable Amount</ion-col>
+            <ion-col class="ion-text-end">{{ saleSummary?.taxableAmount | number:'1.2-2' }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>CGST</ion-col>
+            <ion-col class="ion-text-end">{{ saleSummary?.cgstAmount | number:'1.2-2' }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>SGST</ion-col>
+            <ion-col class="ion-text-end">{{ saleSummary?.sgstAmount | number:'1.2-2' }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>IGST</ion-col>
+            <ion-col class="ion-text-end">{{ saleSummary?.igstAmount | number:'1.2-2' }}</ion-col>
+          </ion-row>
+          <ion-row class="total-row">
+            <ion-col><strong>Total Output Tax</strong></ion-col>
+            <ion-col class="ion-text-end"><strong>{{ saleSummary?.totalTax | number:'1.2-2' }}</strong></ion-col>
+          </ion-row>
+          <ion-row class="grand-total-row">
+            <ion-col><strong>Grand Total</strong></ion-col>
+            <ion-col class="ion-text-end"><strong>{{ saleSummary?.totalAmount | number:'1.2-2' }}</strong></ion-col>
+          </ion-row>
+          <ion-row class="meta-row">
+            <ion-col><ion-text color="medium">Invoices: {{ saleSummary?.invoiceCount ?? 0 }}</ion-text></ion-col>
+            <ion-col class="ion-text-end">
+              <ion-button size="small" fill="outline" (click)="goToSaleInvoices()">View Invoices</ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Net ITC Position -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="calculator-outline" color="tertiary"></ion-icon>
+          Net ITC Position (Purchase - Sale Tax)
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid class="gst-table">
+          <ion-row class="header-row">
+            <ion-col>Tax Head</ion-col>
+            <ion-col class="ion-text-end">Net ITC (₹)</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>CGST</ion-col>
+            <ion-col class="ion-text-end" [class.positive]="netItcCgst >= 0" [class.negative]="netItcCgst < 0">
+              {{ netItcCgst | number:'1.2-2' }}
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>SGST</ion-col>
+            <ion-col class="ion-text-end" [class.positive]="netItcSgst >= 0" [class.negative]="netItcSgst < 0">
+              {{ netItcSgst | number:'1.2-2' }}
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>IGST</ion-col>
+            <ion-col class="ion-text-end" [class.positive]="netItcIgst >= 0" [class.negative]="netItcIgst < 0">
+              {{ netItcIgst | number:'1.2-2' }}
+            </ion-col>
+          </ion-row>
+          <ion-row class="grand-total-row">
+            <ion-col><strong>Net Total ITC</strong></ion-col>
+            <ion-col class="ion-text-end" [class.positive]="netItcTotal >= 0" [class.negative]="netItcTotal < 0">
+              <strong>{{ netItcTotal | number:'1.2-2' }}</strong>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+        <ion-text color="medium" class="itc-note">
+          <small>Positive = ITC available for set-off. Negative = Tax liability payable.</small>
+        </ion-text>
+      </ion-card-content>
+    </ion-card>
+
+  </ng-container>
+</ion-content>

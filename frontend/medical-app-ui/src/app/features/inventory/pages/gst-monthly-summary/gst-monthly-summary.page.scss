@@ -1,0 +1,40 @@
+.gst-table {
+  ion-row {
+    border-bottom: 1px solid var(--ion-color-light-shade);
+    padding: 4px 0;
+  }
+
+  .header-row {
+    font-weight: 600;
+    background: var(--ion-color-light);
+    padding: 8px 0;
+    border-radius: 4px;
+  }
+
+  .total-row {
+    background: var(--ion-color-light);
+    border-top: 2px solid var(--ion-color-medium-shade);
+    margin-top: 4px;
+  }
+
+  .grand-total-row {
+    background: var(--ion-color-primary-tint);
+    color: var(--ion-color-primary-contrast);
+    border-radius: 4px;
+    padding: 8px 0;
+  }
+
+  .meta-row {
+    padding-top: 8px;
+    border-bottom: none;
+  }
+}
+
+.positive { color: var(--ion-color-success); }
+.negative { color: var(--ion-color-danger); }
+
+.itc-note {
+  display: block;
+  margin-top: 8px;
+  padding: 0 4px;
+}
